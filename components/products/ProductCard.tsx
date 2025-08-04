@@ -1,20 +1,24 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import Link from 'next/link';
-import { Wine } from '@/lib/types';
-import { useCart } from '@/contexts/CartContext';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Star, ShoppingCart } from 'lucide-react';
-import { useState } from 'react';
+import Image from "next/image";
+import Link from "next/link";
+import { Wine } from "@/lib/types";
+import { useCart } from "@/contexts/CartContext";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Star, ShoppingCart } from "lucide-react";
+import { useState } from "react";
+import { getTypeName } from "@/lib/utils";
 
 interface ProductCardProps {
   wine: Wine;
-  variant?: 'default' | 'compact';
+  variant?: "default" | "compact";
 }
 
-export default function ProductCard({ wine, variant = 'default' }: ProductCardProps) {
+export default function ProductCard({
+  wine,
+  variant = "default",
+}: ProductCardProps) {
   const { addItem } = useCart();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -22,7 +26,7 @@ export default function ProductCard({ wine, variant = 'default' }: ProductCardPr
     e.preventDefault();
     e.stopPropagation();
     setIsLoading(true);
-    
+
     setTimeout(() => {
       addItem(wine);
       setIsLoading(false);
@@ -30,43 +34,28 @@ export default function ProductCard({ wine, variant = 'default' }: ProductCardPr
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
     }).format(price);
   };
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'red':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-      case 'white':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-      case 'rose':
-        return 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200';
-      case 'sparkling':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+      case "red":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+      case "white":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+      case "rose":
+        return "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200";
+      case "sparkling":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
     }
   };
 
-  const getTypeName = (type: string) => {
-    switch (type) {
-      case 'red':
-        return 'Đỏ';
-      case 'white':
-        return 'Trắng';
-      case 'rose':
-        return 'Hồng';
-      case 'sparkling':
-        return 'Sủi bọt';
-      default:
-        return type;
-    }
-  };
-
-  if (variant === 'compact') {
+  if (variant === "compact") {
     return (
       <Link href={`/products/${wine.id}`}>
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700 p-4">

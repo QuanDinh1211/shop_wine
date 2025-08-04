@@ -1,18 +1,29 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { wines } from '@/lib/data/wines';
-import { FilterOptions } from '@/lib/types';
-import ProductCard from '@/components/products/ProductCard';
-import ProductFilters from '@/components/products/ProductFilters';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Filter, Grid, List } from 'lucide-react';
+import { Suspense, useState, useMemo } from "react";
+import { Wine, FilterOptions } from "@/lib/types";
+import ProductCard from "@/components/products/ProductCard";
+import ProductFilters from "@/components/products/ProductFilters";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Filter, Grid, List } from "lucide-react";
+import ProductsServer from "./ProductsServer";
 
-type SortOption = 'price-asc' | 'price-desc' | 'rating-desc' | 'name-asc' | 'year-desc';
+type SortOption =
+  | "price-asc"
+  | "price-desc"
+  | "rating-desc"
+  | "name-asc"
+  | "year-desc";
 
-export default function ProductsPage() {
+function ProductsContent({ wines }: { wines: Wine[] }) {
   const [filters, setFilters] = useState<FilterOptions>({
     type: [],
     country: [],
@@ -20,34 +31,42 @@ export default function ProductsPage() {
     year: [2010, 2024],
     rating: 1,
   });
-  
-  const [sortBy, setSortBy] = useState<SortOption>('rating-desc');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [sortBy, setSortBy] = useState<SortOption>("rating-desc");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   const filteredAndSortedWines = useMemo(() => {
-    let filtered = wines.filter(wine => {
+    let filtered = wines.filter((wine) => {
       // Type filter
       if (filters.type.length > 0 && !filters.type.includes(wine.type)) {
         return false;
       }
 
       // Country filter
-      if (filters.country.length > 0 && !filters.country.includes(wine.country)) {
+      if (
+        filters.country.length > 0 &&
+        !filters.country.includes(wine.country)
+      ) {
         return false;
       }
 
       // Price filter
-      if (wine.price < filters.priceRange[0] || wine.price > filters.priceRange[1]) {
+      if (
+        wine.price < filters.priceRange[0] ||
+        wine.price > filters.priceRange[1]
+      ) {
         return false;
       }
 
       // Year filter
-      if (wine.year < filters.year[0] || wine.year > filters.year[1]) {
+      if (
+        wine.year &&
+        (wine.year < filters.year[0] || wine.year > filters.year[1])
+      ) {
         return false;
       }
 
       // Rating filter
-      if (wine.rating < filters.rating) {
+      if (wine.rating && wine.rating < filters.rating) {
         return false;
       }
 
@@ -57,23 +76,23 @@ export default function ProductsPage() {
     // Sort
     filtered.sort((a, b) => {
       switch (sortBy) {
-        case 'price-asc':
+        case "price-asc":
           return a.price - b.price;
-        case 'price-desc':
+        case "price-desc":
           return b.price - a.price;
-        case 'rating-desc':
-          return b.rating - a.rating;
-        case 'name-asc':
+        case "rating-desc":
+          return (b.rating || 0) - (a.rating || 0);
+        case "name-asc":
           return a.name.localeCompare(b.name);
-        case 'year-desc':
-          return b.year - a.year;
+        case "year-desc":
+          return (b.year || 0) - (a.year || 0);
         default:
           return 0;
       }
     });
 
     return filtered;
-  }, [filters, sortBy]);
+  }, [filters, sortBy, wines]);
 
   const clearFilters = () => {
     setFilters({
@@ -141,12 +160,17 @@ export default function ProductsPage() {
 
               <div className="flex items-center space-x-4">
                 {/* Sort */}
-                <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
+                <Select
+                  value={sortBy}
+                  onValueChange={(value: SortOption) => setSortBy(value)}
+                >
                   <SelectTrigger className="w-48">
                     <SelectValue placeholder="Sắp xếp theo" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="rating-desc">Đánh giá cao nhất</SelectItem>
+                    <SelectItem value="rating-desc">
+                      Đánh giá cao nhất
+                    </SelectItem>
                     <SelectItem value="price-asc">Giá thấp đến cao</SelectItem>
                     <SelectItem value="price-desc">Giá cao đến thấp</SelectItem>
                     <SelectItem value="name-asc">Tên A-Z</SelectItem>
@@ -157,17 +181,17 @@ export default function ProductsPage() {
                 {/* View Mode */}
                 <div className="flex border rounded-md">
                   <Button
-                    variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                    variant={viewMode === "grid" ? "default" : "ghost"}
                     size="sm"
-                    onClick={() => setViewMode('grid')}
+                    onClick={() => setViewMode("grid")}
                     className="rounded-r-none"
                   >
                     <Grid className="h-4 w-4" />
                   </Button>
                   <Button
-                    variant={viewMode === 'list' ? 'default' : 'ghost'}
+                    variant={viewMode === "list" ? "default" : "ghost"}
                     size="sm"
-                    onClick={() => setViewMode('list')}
+                    onClick={() => setViewMode("list")}
                     className="rounded-l-none"
                   >
                     <List className="h-4 w-4" />
@@ -187,20 +211,76 @@ export default function ProductsPage() {
                 </Button>
               </div>
             ) : (
-              <div className={
-                viewMode === 'grid'
-                  ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6'
-                  : 'space-y-4'
-              }>
-                {filteredAndSortedWines.map(wine => (
+              <div
+                className={
+                  viewMode === "grid"
+                    ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
+                    : "space-y-4"
+                }
+              >
+                {filteredAndSortedWines.map((wine) => (
                   <ProductCard
                     key={wine.id}
                     wine={wine}
-                    variant={viewMode === 'list' ? 'compact' : 'default'}
+                    variant={viewMode === "list" ? "compact" : "default"}
                   />
                 ))}
               </div>
             )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default async function ProductsPage() {
+  const { wines } = await ProductsServer();
+  return (
+    <Suspense fallback={<LoadingSkeleton />}>
+      <ProductsContent wines={wines} />
+    </Suspense>
+  );
+}
+
+function LoadingSkeleton() {
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8 animate-pulse">
+          <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
+          <div className="h-4 w-96 bg-gray-200 dark:bg-gray-700 rounded"></div>
+        </div>
+        <div className="flex gap-8">
+          <div className="hidden lg:block w-80 flex-shrink-0">
+            <div className="space-y-4 animate-pulse">
+              <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div className="h-48 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div className="h-48 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
+            </div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm animate-pulse">
+              <div className="flex items-center space-x-4">
+                <div className="h-8 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              </div>
+              <div className="flex items-center space-x-4">
+                <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, index) => (
+                <div key={index} className="space-y-4 animate-pulse">
+                  <div className="aspect-[3/4] bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                  <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  <div className="h-4 w-1/2 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  <div className="h-6 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

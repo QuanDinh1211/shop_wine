@@ -1,14 +1,10 @@
-'use client';
-
-import { useState } from 'react';
-import { FilterOptions } from '@/lib/types';
-import { countries, wineTypes } from '@/lib/data/wines';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { X } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { FilterOptions } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
+import { getTypeName } from "@/lib/utils";
 
 interface ProductFiltersProps {
   filters: FilterOptions;
@@ -21,168 +17,158 @@ export default function ProductFilters({
   onFiltersChange,
   onClearFilters,
 }: ProductFiltersProps) {
-  const handleTypeChange = (type: string, checked: boolean) => {
-    const newTypes = checked
-      ? [...filters.type, type]
-      : filters.type.filter(t => t !== type);
+  const [types, setTypes] = useState<string[]>([]);
+  const [countries, setCountries] = useState<string[]>([]);
+
+  // Lấy danh sách type và country từ API
+  useEffect(() => {
+    async function fetchFilterOptions() {
+      try {
+        const [typesRes, countriesRes] = await Promise.all([
+          fetch("/api/filters/types"),
+          fetch("/api/filters/countries"),
+        ]);
+        const typesData = await typesRes.json();
+        const countriesData = await countriesRes.json();
+        setTypes(typesData);
+        setCountries(countriesData);
+      } catch (error) {
+        console.error("Error fetching filter options:", error);
+      }
+    }
+    fetchFilterOptions();
+  }, []);
+
+  const handleTypeChange = (type: string) => {
+    const newTypes = filters.type.includes(type)
+      ? filters.type.filter((t) => t !== type)
+      : [...filters.type, type];
     onFiltersChange({ ...filters, type: newTypes });
   };
 
-  const handleCountryChange = (country: string, checked: boolean) => {
-    const newCountries = checked
-      ? [...filters.country, country]
-      : filters.country.filter(c => c !== country);
+  const handleCountryChange = (country: string) => {
+    const newCountries = filters.country.includes(country)
+      ? filters.country.filter((c) => c !== country)
+      : [...filters.country, country];
     onFiltersChange({ ...filters, country: newCountries });
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-      minimumFractionDigits: 0,
-    }).format(price);
+  const handlePriceRangeChange = (value: number[]) => {
+    onFiltersChange({ ...filters, priceRange: [value[0], value[1]] });
   };
 
-  const getTypeName = (type: string) => {
-    switch (type) {
-      case 'red':
-        return 'Đỏ';
-      case 'white':
-        return 'Trắng';
-      case 'rose':
-        return 'Hồng';
-      case 'sparkling':
-        return 'Sủi bọt';
-      default:
-        return type;
-    }
+  const handleYearRangeChange = (value: number[]) => {
+    onFiltersChange({ ...filters, year: [value[0], value[1]] });
+  };
+
+  const handleRatingChange = (value: number) => {
+    onFiltersChange({ ...filters, rating: value });
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Bộ lọc</h3>
-        <Button variant="ghost" size="sm" onClick={onClearFilters}>
-          <X className="h-4 w-4 mr-2" />
-          Xóa bộ lọc
-        </Button>
-      </div>
-
-      {/* Wine Type Filter */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Loại rượu vang</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {wineTypes.map(type => (
-            <div key={type} className="flex items-center space-x-2">
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+          Loại rượu
+        </h3>
+        <div className="space-y-2">
+          {types.map((type) => (
+            <div key={type} className="flex items-center">
               <Checkbox
                 id={`type-${type}`}
                 checked={filters.type.includes(type)}
-                onCheckedChange={(checked) => handleTypeChange(type, checked as boolean)}
+                onCheckedChange={() => handleTypeChange(type)}
               />
-              <Label htmlFor={`type-${type}`} className="text-sm">
+              <Label
+                htmlFor={`type-${type}`}
+                className="ml-2 text-gray-700 dark:text-gray-300"
+              >
                 {getTypeName(type)}
               </Label>
             </div>
           ))}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* Country Filter */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Quốc gia</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {countries.map(country => (
-            <div key={country} className="flex items-center space-x-2">
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+          Quốc gia
+        </h3>
+        <div className="space-y-2">
+          {countries.map((country) => (
+            <div key={country} className="flex items-center">
               <Checkbox
                 id={`country-${country}`}
                 checked={filters.country.includes(country)}
-                onCheckedChange={(checked) => handleCountryChange(country, checked as boolean)}
+                onCheckedChange={() => handleCountryChange(country)}
               />
-              <Label htmlFor={`country-${country}`} className="text-sm">
+              <Label
+                htmlFor={`country-${country}`}
+                className="ml-2 text-gray-700 dark:text-gray-300"
+              >
                 {country}
               </Label>
             </div>
           ))}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* Price Range Filter */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Khoảng giá</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <Slider
-              value={filters.priceRange}
-              onValueChange={(value) =>
-                onFiltersChange({ ...filters, priceRange: value as [number, number] })
-              }
-              max={10000000}
-              min={500000}
-              step={100000}
-              className="w-full"
-            />
-            <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
-              <span>{formatPrice(filters.priceRange[0])}</span>
-              <span>{formatPrice(filters.priceRange[1])}</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+          Khoảng giá
+        </h3>
+        <Slider
+          value={filters.priceRange}
+          onValueChange={handlePriceRangeChange}
+          min={500000}
+          max={10000000}
+          step={100000}
+          className="mb-2"
+        />
+        <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+          <span>{filters.priceRange[0].toLocaleString("vi-VN")} ₫</span>
+          <span>{filters.priceRange[1].toLocaleString("vi-VN")} ₫</span>
+        </div>
+      </div>
 
-      {/* Year Range Filter */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Năm sản xuất</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <Slider
-              value={filters.year}
-              onValueChange={(value) =>
-                onFiltersChange({ ...filters, year: value as [number, number] })
-              }
-              max={2024}
-              min={2010}
-              step={1}
-              className="w-full"
-            />
-            <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
-              <span>{filters.year[0]}</span>
-              <span>{filters.year[1]}</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+          Năm sản xuất
+        </h3>
+        <Slider
+          value={filters.year}
+          onValueChange={handleYearRangeChange}
+          min={2010}
+          max={2024}
+          step={1}
+          className="mb-2"
+        />
+        <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+          <span>{filters.year[0]}</span>
+          <span>{filters.year[1]}</span>
+        </div>
+      </div>
 
-      {/* Rating Filter */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Đánh giá tối thiểu</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <Slider
-              value={[filters.rating]}
-              onValueChange={(value) =>
-                onFiltersChange({ ...filters, rating: value[0] })
-              }
-              max={5}
-              min={1}
-              step={0.1}
-              className="w-full"
-            />
-            <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-              {filters.rating} sao trở lên
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+          Đánh giá
+        </h3>
+        <Slider
+          value={[filters.rating]}
+          onValueChange={(value) => handleRatingChange(value[0])}
+          min={1}
+          max={5}
+          step={0.1}
+          className="mb-2"
+        />
+        <div className="text-sm text-gray-600 dark:text-gray-400">
+          {filters.rating.toFixed(1)} sao trở lên
+        </div>
+      </div>
+
+      <Button variant="outline" onClick={onClearFilters} className="w-full">
+        Xóa bộ lọc
+      </Button>
     </div>
   );
 }

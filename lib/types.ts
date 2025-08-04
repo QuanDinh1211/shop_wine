@@ -1,24 +1,24 @@
 export interface Wine {
-  id: string;
+id: string;
   name: string;
-  type: 'red' | 'white' | 'rose' | 'sparkling';
-  country: string;
-  region: string;
-  year: number;
+  type: string; // Lấy từ WineTypes.name
+  country: string; // Lấy từ Countries.name
+  region: string | null;
+  year: number | null;
   price: number;
-  originalPrice?: number;
-  rating: number;
+  originalPrice: number | null;
+  rating: number | null;
   reviews: number;
-  description: string;
-  images: string[];
+  description: string | null;
+  images: string[]; // Parse từ JSON trong cột images
   inStock: boolean;
   featured: boolean;
-  alcohol: number;
-  volume: number;
-  grapes: string[];
-  winery: string;
-  servingTemp: string;
-  pairings: string[];
+  alcohol: number | null;
+  volume: number | null;
+  winery: string | null;
+  servingTemp: string | null;
+  grapes: string[]; // Lấy từ WineGrapes + Grapes
+  pairings: string[]; // Lấy từ WinePairings + Pairings
 }
 
 export interface CartItem {

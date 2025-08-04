@@ -1,13 +1,46 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
-import { wines } from "@/lib/data/wines";
+import { useState, useEffect } from "react";
 import ProductCard from "@/components/products/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Award, Truck, Shield, Star } from "lucide-react";
+import {
+  ArrowRight,
+  Award,
+  Truck,
+  Shield,
+  Star,
+  RefreshCw,
+} from "lucide-react";
+import { Wine } from "@/lib/types";
 
 export default function HomePage() {
-  const featuredWines = wines.filter((wine) => wine.featured);
+  const [featuredWines, setFeaturedWines] = useState<Wine[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchFeaturedWines = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/wines/featured", { cache: "no-store" });
+      if (!res.ok) {
+        throw new Error("Không thể lấy danh sách sản phẩm nổi bật");
+      }
+      const data: Wine[] = await res.json();
+      setFeaturedWines(data);
+      setLoading(false);
+    } catch (err: any) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFeaturedWines();
+  }, []);
 
   return (
     <div className="min-h-screen">
@@ -110,11 +143,45 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {featuredWines.map((wine) => (
-              <ProductCard key={wine.id} wine={wine} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+              {/* Skeleton Loader */}
+              {[...Array(3)].map((_, index) => (
+                <div
+                  key={index}
+                  className="border rounded-lg p-4 shadow-sm bg-white dark:bg-gray-800 animate-pulse"
+                >
+                  <div className="w-full h-64 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                  <div className="mt-4 h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                  <div className="mt-2 h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                  <div className="mt-2 h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+                  <div className="mt-4 h-10 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                </div>
+              ))}
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center h-64 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-4">
+              <div className="text-red-600 text-2xl font-semibold mb-2">
+                Ôi không, có lỗi xảy ra!
+              </div>
+              <p className="text-gray-600 dark:text-gray-400 text-center mb-4">
+                {error}
+              </p>
+              <Button
+                onClick={fetchFeaturedWines}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                <RefreshCw className="mr-2 h-5 w-5" />
+                Thử lại
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+              {featuredWines.map((wine) => (
+                <ProductCard key={wine.id} wine={wine} />
+              ))}
+            </div>
+          )}
 
           <div className="text-center">
             <Link href="/products">
