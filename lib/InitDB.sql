@@ -72,6 +72,7 @@ CREATE TABLE WinePairings (
 CREATE TABLE Customers (
     id VARCHAR(50) PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
     name VARCHAR(100) NOT NULL,
     isAdmin BOOLEAN DEFAULT FALSE
 );
@@ -79,11 +80,17 @@ CREATE TABLE Customers (
 -- Tạo bảng Orders
 CREATE TABLE Orders (
     order_id INT PRIMARY KEY AUTO_INCREMENT,
+    order_code VARCHAR(50) NOT NULL UNIQUE,
     customer_id VARCHAR(50) NOT NULL,
+    full_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
     order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     total_amount DECIMAL(15, 2) NOT NULL,
     status ENUM('pending', 'processing', 'shipped', 'delivered', 'cancelled') DEFAULT 'pending',
     shipping_address TEXT NOT NULL,
+    payment_method ENUM('cod', 'bank', 'card') NOT NULL,
+    notes TEXT,
     FOREIGN KEY (customer_id) REFERENCES Customers(id)
 );
 
@@ -98,11 +105,12 @@ CREATE TABLE OrderItems (
     FOREIGN KEY (wine_id) REFERENCES Wines(id)
 );
 
--- Chèn dữ liệu mẫu cho Customers
-INSERT INTO Customers (id, email, name, isAdmin)
+-- Chèn dữ liệu mẫu cho Customers với mật khẩu '123456' đã mã hóa
+INSERT INTO Customers (id, email, password, name, isAdmin)
 VALUES 
-    ('1', 'admin@wine.com', 'Admin User', TRUE),
-    ('2', 'user@wine.com', 'Regular User', FALSE);
+    ('1', 'admin@wine.com', '$2a$10$frBVYZTwTvNEmGpA6o8L0eU1eiy9Vz5o9nU0f9DOH6DW.5gKcLZLa', 'Admin User', TRUE),
+    ('2', 'user@wine.com', '$2a$10$Y8eB5qUOPV3f.NWfguvYgeGJ1DLqZu6xyv/Iwb7qNO0zE3g6IDZ6C', 'Regular User', FALSE);
+
 
 -- Chèn dữ liệu mẫu cho Countries
 INSERT INTO Countries (name) 

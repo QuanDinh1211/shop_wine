@@ -402,11 +402,20 @@ export default function ProductPage({ id }: { id: string }) {
                   Thêm vào giỏ hàng
                 </Button>
 
-                <Button variant="outline" size="lg">
-                  <Heart className="h-5 w-5" />
-                </Button>
-
-                <Button variant="outline" size="lg">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => {
+                    navigator.clipboard
+                      .writeText(window.location.href)
+                      .then(() => {
+                        toast.success("Đã sao chép liên kết!");
+                      })
+                      .catch((err) => {
+                        toast.error("Lỗi sao chép:", err);
+                      });
+                  }}
+                >
                   <Share2 className="h-5 w-5" />
                 </Button>
               </div>

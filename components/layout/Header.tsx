@@ -87,7 +87,12 @@ export default function Header() {
                     </Button>
                   </Link>
                 )}
-                <Button variant="ghost" size="sm" onClick={logout}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={logout}
+                  className="hidden sm:block"
+                >
                   <LogOut className="h-4 w-4" />
                 </Button>
               </div>
@@ -154,6 +159,16 @@ export default function Header() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Lịch sử đơn hàng
+              </Link>
+              <Link
+                href="/"
+                className="text-gray-700 dark:text-gray-300 hover:text-red-800 dark:hover:text-red-400 transition-colors py-2"
+                onClick={() => {
+                  logout();
+                  setMobileMenuOpen(false);
+                }}
+              >
+                Đăng xuất
               </Link>
             </nav>
           </div>

@@ -1,30 +1,38 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
 
 export default function AuthPage() {
   const { login, register } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectPath = searchParams.get("redirect") || "/";
   const [isLoading, setIsLoading] = useState(false);
 
   const [loginForm, setLoginForm] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
 
   const [registerForm, setRegisterForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -34,13 +42,13 @@ export default function AuthPage() {
     try {
       const success = await login(loginForm.email, loginForm.password);
       if (success) {
-        toast.success('Đăng nhập thành công!');
-        router.push('/');
+        toast.success("Đăng nhập thành công!");
+        router.push(redirectPath);
       } else {
-        toast.error('Email hoặc mật khẩu không đúng');
+        toast.error("Email hoặc mật khẩu không đúng");
       }
     } catch (error) {
-      toast.error('Có lỗi xảy ra, vui lòng thử lại');
+      toast.error("Có lỗi xảy ra, vui lòng thử lại");
     } finally {
       setIsLoading(false);
     }
@@ -48,24 +56,28 @@ export default function AuthPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (registerForm.password !== registerForm.confirmPassword) {
-      toast.error('Mật khẩu xác nhận không khớp');
+      toast.error("Mật khẩu xác nhận không khớp");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const success = await register(registerForm.email, registerForm.password, registerForm.name);
+      const success = await register(
+        registerForm.email,
+        registerForm.password,
+        registerForm.name
+      );
       if (success) {
-        toast.success('Đăng ký thành công!');
-        router.push('/');
+        toast.success("Đăng ký thành công!");
+        router.push(redirectPath);
       } else {
-        toast.error('Email đã được sử dụng');
+        toast.error("Email đã được sử dụng");
       }
     } catch (error) {
-      toast.error('Có lỗi xảy ra, vui lòng thử lại');
+      toast.error("Có lỗi xảy ra, vui lòng thử lại");
     } finally {
       setIsLoading(false);
     }
@@ -79,7 +91,9 @@ export default function AuthPage() {
             <div className="w-10 h-10 bg-red-800 rounded-full flex items-center justify-center">
               <span className="text-white font-bold">W</span>
             </div>
-            <span className="text-2xl font-bold text-gray-900 dark:text-white">WineVault</span>
+            <span className="text-2xl font-bold text-gray-900 dark:text-white">
+              WineVault
+            </span>
           </div>
           <p className="text-gray-600 dark:text-gray-400">
             Chào mừng bạn đến với cửa hàng rượu vang cao cấp
@@ -107,31 +121,35 @@ export default function AuthPage() {
                     <Input
                       id="login-email"
                       type="email"
-                      placeholder="admin@wine.com"
+                      placeholder="example@email.com"
                       value={loginForm.email}
-                      onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
+                      onChange={(e) =>
+                        setLoginForm({ ...loginForm, email: e.target.value })
+                      }
                       required
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="login-password">Mật khẩu</Label>
                     <Input
                       id="login-password"
                       type="password"
-                      placeholder="123456"
+                      placeholder="Password"
                       value={loginForm.password}
-                      onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                      onChange={(e) =>
+                        setLoginForm({ ...loginForm, password: e.target.value })
+                      }
                       required
                     />
                   </div>
 
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="w-full bg-red-600 hover:bg-red-700 text-white"
                     disabled={isLoading}
                   >
-                    {isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}
+                    {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
                   </Button>
                 </form>
 
@@ -140,7 +158,8 @@ export default function AuthPage() {
                     Tài khoản demo:
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-500">
-                    Admin: admin@wine.com / 123456<br />
+                    Admin: admin@wine.com / 123456
+                    <br />
                     User: user@wine.com / 123456
                   </p>
                 </div>
@@ -165,7 +184,12 @@ export default function AuthPage() {
                       type="text"
                       placeholder="Nguyễn Văn A"
                       value={registerForm.name}
-                      onChange={(e) => setRegisterForm({ ...registerForm, name: e.target.value })}
+                      onChange={(e) =>
+                        setRegisterForm({
+                          ...registerForm,
+                          name: e.target.value,
+                        })
+                      }
                       required
                     />
                   </div>
@@ -177,11 +201,16 @@ export default function AuthPage() {
                       type="email"
                       placeholder="example@email.com"
                       value={registerForm.email}
-                      onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
+                      onChange={(e) =>
+                        setRegisterForm({
+                          ...registerForm,
+                          email: e.target.value,
+                        })
+                      }
                       required
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="register-password">Mật khẩu</Label>
                     <Input
@@ -189,30 +218,42 @@ export default function AuthPage() {
                       type="password"
                       placeholder="Tối thiểu 6 ký tự"
                       value={registerForm.password}
-                      onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
+                      onChange={(e) =>
+                        setRegisterForm({
+                          ...registerForm,
+                          password: e.target.value,
+                        })
+                      }
                       required
                       minLength={6}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="register-confirm-password">Xác nhận mật khẩu</Label>
+                    <Label htmlFor="register-confirm-password">
+                      Xác nhận mật khẩu
+                    </Label>
                     <Input
                       id="register-confirm-password"
                       type="password"
                       placeholder="Nhập lại mật khẩu"
                       value={registerForm.confirmPassword}
-                      onChange={(e) => setRegisterForm({ ...registerForm, confirmPassword: e.target.value })}
+                      onChange={(e) =>
+                        setRegisterForm({
+                          ...registerForm,
+                          confirmPassword: e.target.value,
+                        })
+                      }
                       required
                     />
                   </div>
 
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="w-full bg-red-600 hover:bg-red-700 text-white"
                     disabled={isLoading}
                   >
-                    {isLoading ? 'Đang đăng ký...' : 'Đăng ký'}
+                    {isLoading ? "Đang đăng ký..." : "Đăng ký"}
                   </Button>
                 </form>
               </CardContent>

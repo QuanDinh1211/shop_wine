@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Mail, Phone, MapPin, Clock, Send } from "lucide-react";
 
-export default function Contact() {
+export default function LiênHệ() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -29,7 +29,7 @@ export default function Contact() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Mock form submission
+    // Mô phỏng gửi biểu mẫu
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
       setSubmitStatus("success");
@@ -45,21 +45,23 @@ export default function Contact() {
   return (
     <div className="min-h-screen py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
+        {/* Tiêu đề */}
         <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-red-900 mb-6">Contact Us</h1>
+          <h1 className="text-5xl font-bold text-red-900 mb-6">
+            Liên Hệ Với Chúng Tôi
+          </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            We'd love to hear from you. Send us a message and we'll respond as
-            soon as possible.
+            Chúng tôi rất mong nhận được tin từ bạn. Hãy gửi tin nhắn và chúng
+            tôi sẽ trả lời sớm nhất có thể.
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Contact Information */}
+          {/* Thông tin liên hệ */}
           <div className="space-y-8">
             <div className="bg-white rounded-2xl shadow-xl p-8">
               <h2 className="text-3xl font-bold text-red-900 mb-8">
-                Get in Touch
+                Kết Nối Với Chúng Tôi
               </h2>
 
               <div className="space-y-6">
@@ -69,11 +71,11 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      Address
+                      Địa Chỉ
                     </h3>
                     <p className="text-gray-600">
-                      123 Wine Street, District 1<br />
-                      Ho Chi Minh City, Vietnam
+                      123 Phố Rượu, Quận 1<br />
+                      Thành phố Hồ Chí Minh, Việt Nam
                     </p>
                   </div>
                 </div>
@@ -84,7 +86,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      Phone
+                      Điện Thoại
                     </h3>
                     <p className="text-gray-600">+84 123 456 789</p>
                     <p className="text-gray-600">+84 987 654 321</p>
@@ -110,45 +112,45 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      Business Hours
+                      Giờ Làm Việc
                     </h3>
                     <p className="text-gray-600">
-                      Monday - Saturday: 9:00 AM - 8:00 PM
+                      Thứ Hai - Thứ Bảy: 9:00 Sáng - 8:00 Tối
                       <br />
-                      Sunday: 10:00 AM - 6:00 PM
+                      Chủ Nhật: 10:00 Sáng - 6:00 Tối
                     </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Map placeholder */}
+            {/* Phần giữ chỗ cho bản đồ */}
             <div className="bg-white rounded-2xl shadow-xl p-8">
               <h3 className="text-2xl font-bold text-red-900 mb-4">
-                Visit Our Store
+                Ghé Thăm Cửa Hàng Của Chúng Tôi
               </h3>
               <div className="bg-gradient-to-br from-red-100 to-red-200 rounded-xl h-64 flex items-center justify-center">
                 <div className="text-center">
                   <MapPin className="h-16 w-16 text-red-900 mx-auto mb-4" />
-                  <p className="text-red-800 font-semibold">Interactive Map</p>
+                  <p className="text-red-800 font-semibold">Bản Đồ Tương Tác</p>
                   <p className="text-red-700 text-sm">
-                    123 Wine Street, District 1, HCMC
+                    123 Phố Rượu, Quận 1, TP.HCM
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Contact Form */}
+          {/* Biểu mẫu liên hệ */}
           <div className="bg-white rounded-2xl shadow-xl p-8">
             <h2 className="text-3xl font-bold text-red-900 mb-8">
-              Send us a Message
+              Gửi Tin Nhắn Cho Chúng Tôi
             </h2>
 
             {submitStatus === "success" && (
               <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
                 <p className="text-green-800">
-                  Thank you! Your message has been sent successfully.
+                  Cảm ơn bạn! Tin nhắn của bạn đã được gửi thành công.
                 </p>
               </div>
             )}
@@ -156,8 +158,8 @@ export default function Contact() {
             {submitStatus === "error" && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                 <p className="text-red-800">
-                  Sorry, there was an error sending your message. Please try
-                  again.
+                  Xin lỗi, có lỗi xảy ra khi gửi tin nhắn của bạn. Vui lòng thử
+                  lại.
                 </p>
               </div>
             )}
@@ -169,7 +171,7 @@ export default function Contact() {
                     htmlFor="name"
                     className="block text-sm font-semibold text-gray-700 mb-2"
                   >
-                    Full Name *
+                    Họ và Tên *
                   </label>
                   <input
                     type="text"
@@ -179,7 +181,7 @@ export default function Contact() {
                     value={formData.name}
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900 focus:border-transparent transition-all"
-                    placeholder="Enter your full name"
+                    placeholder="Nhập họ và tên của bạn"
                   />
                 </div>
 
@@ -188,7 +190,7 @@ export default function Contact() {
                     htmlFor="email"
                     className="block text-sm font-semibold text-gray-700 mb-2"
                   >
-                    Email Address *
+                    Địa Chỉ Email *
                   </label>
                   <input
                     type="email"
@@ -198,7 +200,7 @@ export default function Contact() {
                     value={formData.email}
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900 focus:border-transparent transition-all"
-                    placeholder="Enter your email"
+                    placeholder="Nhập email của bạn"
                   />
                 </div>
               </div>
@@ -208,7 +210,7 @@ export default function Contact() {
                   htmlFor="subject"
                   className="block text-sm font-semibold text-gray-700 mb-2"
                 >
-                  Subject *
+                  Chủ Đề *
                 </label>
                 <select
                   id="subject"
@@ -218,13 +220,13 @@ export default function Contact() {
                   onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900 focus:border-transparent transition-all"
                 >
-                  <option value="">Select a subject</option>
-                  <option value="general">General Inquiry</option>
-                  <option value="order">Order Support</option>
-                  <option value="wine-advice">Wine Recommendations</option>
-                  <option value="events">Events & Tastings</option>
-                  <option value="corporate">Corporate Orders</option>
-                  <option value="other">Other</option>
+                  <option value="">Chọn một chủ đề</option>
+                  <option value="general">Thắc Mắc Chung</option>
+                  <option value="order">Hỗ Trợ Đơn Hàng</option>
+                  <option value="wine-advice">Gợi Ý Rượu</option>
+                  <option value="events">Sự Kiện & Nếm Thử</option>
+                  <option value="corporate">Đơn Hàng Doanh Nghiệp</option>
+                  <option value="other">Khác</option>
                 </select>
               </div>
 
@@ -233,7 +235,7 @@ export default function Contact() {
                   htmlFor="message"
                   className="block text-sm font-semibold text-gray-700 mb-2"
                 >
-                  Message *
+                  Tin Nhắn *
                 </label>
                 <textarea
                   id="message"
@@ -243,7 +245,7 @@ export default function Contact() {
                   value={formData.message}
                   onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900 focus:border-transparent transition-all resize-none"
-                  placeholder="Tell us how we can help you..."
+                  placeholder="Hãy cho chúng tôi biết chúng tôi có thể giúp gì cho bạn..."
                 ></textarea>
               </div>
 
@@ -259,12 +261,12 @@ export default function Contact() {
                 {isSubmitting ? (
                   <>
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    <span>Sending...</span>
+                    <span>Đang Gửi...</span>
                   </>
                 ) : (
                   <>
                     <Send className="h-5 w-5" />
-                    <span>Send Message</span>
+                    <span>Gửi Tin Nhắn</span>
                   </>
                 )}
               </button>
