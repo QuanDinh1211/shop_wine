@@ -37,12 +37,9 @@ export default function ProductPage({ id }: { id: string }) {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/api/wines/${id}`,
-          {
-            cache: "no-store",
-          }
-        );
+        const res = await fetch(`/api/wines/${id}`, {
+          cache: "no-store",
+        });
         if (!res.ok) {
           if (res.status === 404) {
             notFound();

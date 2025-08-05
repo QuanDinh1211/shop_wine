@@ -6,10 +6,7 @@ export default function Page({ params }: { params: { id: string } }) {
 }
 export async function generateStaticParams() {
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/wines/featured`,
-      { cache: "no-store" }
-    );
+    const res = await fetch(`/api/wines/featured`, { cache: "no-store" });
     if (!res.ok) {
       return [];
     }

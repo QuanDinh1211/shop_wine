@@ -80,13 +80,7 @@ export default function Header() {
                 <span className="text-sm text-gray-700 dark:text-gray-300 hidden sm:block">
                   {user.name}
                 </span>
-                {user.isAdmin && (
-                  <Link href="/admin">
-                    <Button variant="ghost" size="sm">
-                      Admin
-                    </Button>
-                  </Link>
-                )}
+
                 <Button
                   variant="ghost"
                   size="sm"
