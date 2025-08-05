@@ -117,7 +117,7 @@ export default function HomePage() {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="border-white text-white hover:bg-white hover:text-gray-900"
+                    className="border-white text-gray-500 hover:bg-white hover:text-gray-900"
                   >
                     Tìm hiểu thêm
                   </Button>
