@@ -13,8 +13,10 @@ import {
   Shield,
   Star,
   RefreshCw,
+  Mail,
 } from "lucide-react";
 import { Wine } from "@/lib/types";
+import { toast } from "sonner";
 
 export default function HomePage() {
   const [featuredWines, setFeaturedWines] = useState<Wine[]>([]);
@@ -41,6 +43,43 @@ export default function HomePage() {
   useEffect(() => {
     fetchFeaturedWines();
   }, []);
+
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error("Vui lòng nhập email hợp lệ");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/newsletter`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        }
+      );
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Lỗi khi đăng ký");
+      }
+
+      toast.success("Đăng ký nhận thông tin thành công!");
+      setEmail("");
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen">
@@ -274,16 +313,34 @@ export default function HomePage() {
             Nhận thông tin về sản phẩm mới và các chương trình khuyến mãi đặc
             biệt
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder="Nhập email của bạn"
-              className="flex-1 px-4 py-3 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-400"
-            />
-            <Button className="bg-red-600 hover:bg-red-700 text-white">
-              Đăng ký
-            </Button>
-          </div>
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto"
+          >
+            <div className="relative flex-1">
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500 mr-2" />
+              <input
+                type="email"
+                placeholder="Nhập email của bạn"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-400"
+                disabled={isSubmitting}
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={`bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center ${
+                isSubmitting ? "opacity-75 cursor-not-allowed" : ""
+              }`}
+            >
+              {isSubmitting ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+              ) : null}
+              <span>Đăng ký</span>
+            </button>
+          </form>
         </div>
       </section>
     </div>

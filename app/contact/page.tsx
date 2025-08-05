@@ -1,6 +1,8 @@
 "use client";
+
 import { useState } from "react";
 import { Mail, Phone, MapPin, Clock, Send } from "lucide-react";
+import { toast } from "sonner";
 
 export default function LiênHệ() {
   const [formData, setFormData] = useState({
@@ -25,17 +27,65 @@ export default function LiênHệ() {
     });
   };
 
+  const validateForm = () => {
+    if (
+      !formData.name ||
+      !formData.email ||
+      !formData.subject ||
+      !formData.message
+    ) {
+      toast.error("Vui lòng điền đầy đủ các trường bắt buộc");
+      return false;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      toast.error("Vui lòng nhập email hợp lệ");
+      return false;
+    }
+    const validSubjects = [
+      "general",
+      "order",
+      "wine-advice",
+      "events",
+      "corporate",
+      "other",
+    ];
+    if (!validSubjects.includes(formData.subject)) {
+      toast.error("Vui lòng chọn chủ đề hợp lệ");
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    if (!validateForm()) {
+      return;
+    }
 
-    // Mô phỏng gửi biểu mẫu
+    setIsSubmitting(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/contact`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Lỗi khi gửi tin nhắn");
+      }
+
       setSubmitStatus("success");
       setFormData({ name: "", email: "", subject: "", message: "" });
-    } catch (error) {
+      toast.success("Tin nhắn của bạn đã được gửi thành công!");
+    } catch (error: any) {
       setSubmitStatus("error");
+      toast.error(`Lỗi: ${error.message}`);
     } finally {
       setIsSubmitting(false);
       setTimeout(() => setSubmitStatus("idle"), 5000);
@@ -74,8 +124,7 @@ export default function LiênHệ() {
                       Địa Chỉ
                     </h3>
                     <p className="text-gray-600">
-                      123 Phố Rượu, Quận 1<br />
-                      Thành phố Hồ Chí Minh, Việt Nam
+                      123 Phố Rượu, Quận 1, Thành phố Hồ Chí Minh, Việt Nam
                     </p>
                   </div>
                 </div>
@@ -180,6 +229,7 @@ export default function LiênHệ() {
                     required
                     value={formData.name}
                     onChange={handleChange}
+                    disabled={isSubmitting}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900 focus:border-transparent transition-all"
                     placeholder="Nhập họ và tên của bạn"
                   />
@@ -199,6 +249,7 @@ export default function LiênHệ() {
                     required
                     value={formData.email}
                     onChange={handleChange}
+                    disabled={isSubmitting}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900 focus:border-transparent transition-all"
                     placeholder="Nhập email của bạn"
                   />
@@ -218,6 +269,7 @@ export default function LiênHệ() {
                   required
                   value={formData.subject}
                   onChange={handleChange}
+                  disabled={isSubmitting}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900 focus:border-transparent transition-all"
                 >
                   <option value="">Chọn một chủ đề</option>
@@ -244,6 +296,7 @@ export default function LiênHệ() {
                   required
                   value={formData.message}
                   onChange={handleChange}
+                  disabled={isSubmitting}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900 focus:border-transparent transition-all resize-none"
                   placeholder="Hãy cho chúng tôi biết chúng tôi có thể giúp gì cho bạn..."
                 ></textarea>

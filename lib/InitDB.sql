@@ -94,6 +94,8 @@ CREATE TABLE Orders (
     FOREIGN KEY (customer_id) REFERENCES Customers(id)
 );
 
+
+
 -- Tạo bảng OrderItems
 CREATE TABLE OrderItems (
     order_item_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -103,6 +105,23 @@ CREATE TABLE OrderItems (
     unit_price DECIMAL(15, 2) NOT NULL,
     FOREIGN KEY (order_id) REFERENCES Orders(order_id),
     FOREIGN KEY (wine_id) REFERENCES Wines(id)
+);
+
+-- Tạo bảng ContactMessages 
+CREATE TABLE ContactMessages (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    subject VARCHAR(100) NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tạo bảng NewsletterSubscribers 
+CREATE TABLE NewsletterSubscribers (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    subscribed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Chèn dữ liệu mẫu cho Customers với mật khẩu '123456' đã mã hóa
