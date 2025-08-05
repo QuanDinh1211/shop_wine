@@ -127,8 +127,8 @@ CREATE TABLE NewsletterSubscribers (
 -- Chèn dữ liệu mẫu cho Customers với mật khẩu '123456' đã mã hóa
 INSERT INTO Customers (id, email, password, name, isAdmin)
 VALUES 
-    ('1', 'admin@wine.com', '$2a$10$frBVYZTwTvNEmGpA6o8L0eU1eiy9Vz5o9nU0f9DOH6DW.5gKcLZLa', 'Admin User', TRUE),
-    ('2', 'user@wine.com', '$2a$10$Y8eB5qUOPV3f.NWfguvYgeGJ1DLqZu6xyv/Iwb7qNO0zE3g6IDZ6C', 'Regular User', FALSE);
+    ('1', 'admin@wine.com', '$2b$10$kkACqy5xtiEZ1tJ8Kn5GTOAEXu5UZmveYjTl8zz53nyW6DCBI9sM2', 'Admin User', TRUE),
+    ('2', 'user@wine.com', '$2b$10$kkACqy5xtiEZ1tJ8Kn5GTOAEXu5UZmveYjTl8zz53nyW6DCBI9sM2', 'Regular User', FALSE);
 
 
 -- Chèn dữ liệu mẫu cho Countries

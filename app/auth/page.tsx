@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { Mail, X } from "lucide-react";
 
 export default function AuthPage() {
   const { login, register } = useAuth();
@@ -22,6 +23,10 @@ export default function AuthPage() {
   const searchParams = useSearchParams();
   const redirectPath = searchParams.get("redirect") || "/";
   const [isLoading, setIsLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [isSubmittingForgotPassword, setIsSubmittingForgotPassword] =
+    useState(false);
 
   const [loginForm, setLoginForm] = useState({
     email: "",
@@ -80,6 +85,42 @@ export default function AuthPage() {
       toast.error("Có lỗi xảy ra, vui lòng thử lại");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (
+      !forgotPasswordEmail ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(forgotPasswordEmail)
+    ) {
+      toast.error("Vui lòng nhập email hợp lệ");
+      return;
+    }
+
+    setIsSubmittingForgotPassword(true);
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/forgot-password`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: forgotPasswordEmail }),
+        }
+      );
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Lỗi khi gửi yêu cầu");
+      }
+
+      toast.success("Liên kết đặt lại mật khẩu đã được gửi đến email của bạn!");
+      setForgotPasswordEmail("");
+      setShowForgotPassword(false);
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setIsSubmittingForgotPassword(false);
     }
   };
 
@@ -142,6 +183,16 @@ export default function AuthPage() {
                       }
                       required
                     />
+                  </div>
+
+                  <div className="text-right">
+                    <button
+                      type="button"
+                      className="text-sm text-red-600 hover:underline"
+                      onClick={() => setShowForgotPassword(true)}
+                    >
+                      Quên mật khẩu?
+                    </button>
                   </div>
 
                   <Button
@@ -260,6 +311,57 @@ export default function AuthPage() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Modal Quên mật khẩu */}
+        {showForgotPassword && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <Card className="max-w-md w-full">
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle>Quên mật khẩu</CardTitle>
+                  <button
+                    onClick={() => setShowForgotPassword(false)}
+                    className="p-2 hover:bg-gray-100 rounded-lg"
+                  >
+                    <X className="h-6 w-6 text-gray-600" />
+                  </button>
+                </div>
+                <CardDescription>
+                  Nhập email của bạn để nhận liên kết đặt lại mật khẩu
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="forgot-email">Email</Label>
+                    <Input
+                      id="forgot-email"
+                      type="email"
+                      placeholder="example@email.com"
+                      value={forgotPasswordEmail}
+                      onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    className="w-full bg-red-600 hover:bg-red-700 text-white"
+                    disabled={isSubmittingForgotPassword}
+                  >
+                    {isSubmittingForgotPassword ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                        Đang gửi...
+                      </>
+                    ) : (
+                      "Gửi liên kết"
+                    )}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );
