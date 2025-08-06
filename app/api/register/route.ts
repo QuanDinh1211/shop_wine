@@ -50,19 +50,18 @@ export async function POST(request: Request) {
       [id, email, hashedPassword, name, false]
     );
 
-    
     // Trả về thông tin user (không bao gồm password)
     const user: User = {
-        id,
-        email,
-        name,
-        isAdmin: false,
+      id,
+      email,
+      name,
+      isAdmin: false,
     };
     // Tạo JWT
     const token = jwt.sign(
       { id: user.id, email: user.email, isAdmin: user.isAdmin },
       process.env.JWT_SECRET || "your_jwt_secret_key_12345",
-      { expiresIn: "1h" }
+      { expiresIn: "12h" }
     );
 
     await connection.end();

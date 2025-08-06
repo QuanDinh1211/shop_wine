@@ -40,8 +40,6 @@ export async function POST(request: Request) {
 
     const user = rows[0];
 
-    
-
     // So sánh mật khẩu đã mã hóa
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
@@ -58,7 +56,7 @@ export async function POST(request: Request) {
     const token = jwt.sign(
       { id: user.id, email: user.email, isAdmin: user.isAdmin },
       process.env.JWT_SECRET || "your_jwt_secret_key_12345",
-      { expiresIn: "1h" }
+      { expiresIn: "12h" }
     );
 
     // Trả về thông tin user (không bao gồm password)
