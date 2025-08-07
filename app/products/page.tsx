@@ -28,7 +28,7 @@ function ProductsContent({ wines }: { wines: Wine[] }) {
     type: [],
     country: [],
     priceRange: [500000, 10000000],
-    year: [2010, 2024],
+    year: [new Date().getFullYear() - 20, new Date().getFullYear()],
     rating: 1,
   });
   const [sortBy, setSortBy] = useState<SortOption>("rating-desc");
@@ -99,7 +99,7 @@ function ProductsContent({ wines }: { wines: Wine[] }) {
       type: [],
       country: [],
       priceRange: [500000, 10000000],
-      year: [2010, 2024],
+      year: [new Date().getFullYear() - 20, new Date().getFullYear()],
       rating: 1,
     });
   };

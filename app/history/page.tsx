@@ -490,7 +490,7 @@ export default function OrderHistory() {
                   </button>
                   {selectedOrder.status === "delivered" && (
                     <button
-                      onClick={() => router.push("/shop")} // Chuyển hướng đến trang sản phẩm
+                      onClick={() => router.push("/products")} // Chuyển hướng đến trang sản phẩm
                       className="px-6 py-3 bg-red-900 text-white rounded-lg hover:bg-red-800 transition-colors"
                     >
                       Mua lại

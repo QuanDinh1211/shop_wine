@@ -138,7 +138,7 @@ export default function ProductFilters({
         <Slider
           value={filters.year}
           onValueChange={handleYearRangeChange}
-          min={new Date().getFullYear() - 25}
+          min={new Date().getFullYear() - 50}
           max={new Date().getFullYear()}
           step={1}
           className="mb-2"
