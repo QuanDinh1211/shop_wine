@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   Wine,
@@ -16,33 +16,34 @@ import {
   Globe,
   Grape,
   Heart,
-} from 'lucide-react';
+} from "lucide-react";
 
 const navigation = [
-  { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-  { name: 'Wines', href: '/admin/wines', icon: Wine },
-  { name: 'Orders', href: '/admin/orders', icon: ShoppingCart },
-  { name: 'Customers', href: '/admin/customers', icon: Users },
+  { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { name: "Wines", href: "/admin/wines", icon: Wine },
+  { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
+  { name: "Customers", href: "/admin/customers", icon: Users },
   {
-    name: 'Categories',
+    name: "Categories",
     icon: Package,
     children: [
-      { name: 'Countries', href: '/admin/countries', icon: Globe },
-      { name: 'Wine Types', href: '/admin/wine-types', icon: Wine },
-      { name: 'Grapes', href: '/admin/grapes', icon: Grape },
-      { name: 'Pairings', href: '/admin/pairings', icon: Heart },
+      { name: "Countries", href: "/admin/countries", icon: Globe },
+      // { name: 'Wine Types', href: '/admin/wine-types', icon: Wine },
+      // { name: 'Grapes', href: '/admin/grapes', icon: Grape },
+      // { name: 'Pairings', href: '/admin/pairings', icon: Heart },
     ],
   },
-  { name: 'Messages', href: '/admin/messages', icon: MessageSquare },
-  { name: 'Newsletter', href: '/admin/newsletter', icon: Mail },
+  { name: "Messages", href: "/admin/messages", icon: MessageSquare },
+  { name: "Newsletter", href: "/admin/newsletter", icon: Mail },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
 
   const handleLogout = () => {
-    document.cookie = 'admin-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-    window.location.href = '/admin/login';
+    document.cookie =
+      "admin-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+    window.location.href = "/admin/login";
   };
 
   return (
@@ -69,10 +70,10 @@ export default function Sidebar() {
                       key={child.name}
                       href={child.href}
                       className={cn(
-                        'flex items-center px-3 py-2 text-sm rounded-md transition-colors',
+                        "flex items-center px-3 py-2 text-sm rounded-md transition-colors",
                         pathname === child.href
-                          ? 'bg-red-600 text-white'
-                          : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                          ? "bg-red-600 text-white"
+                          : "text-gray-300 hover:bg-gray-700 hover:text-white"
                       )}
                     >
                       <child.icon className="mr-3 h-4 w-4" />
@@ -89,10 +90,10 @@ export default function Sidebar() {
               key={item.name}
               href={item.href}
               className={cn(
-                'flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
                 pathname === item.href
-                  ? 'bg-red-600 text-white'
-                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  ? "bg-red-600 text-white"
+                  : "text-gray-300 hover:bg-gray-700 hover:text-white"
               )}
             >
               <item.icon className="mr-3 h-5 w-5" />
