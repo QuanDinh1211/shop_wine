@@ -103,6 +103,7 @@ export interface User {
   phone?: string;
   address?: string;
   isAdmin: boolean;
+  orders?: Order[];
 }
 
 // Dữ liệu dashboard tổng quan

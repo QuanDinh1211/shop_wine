@@ -74,6 +74,7 @@ CREATE TABLE Customers (
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     name VARCHAR(100) NOT NULL,
+    phone VARCHAR(20) NULL,
     isAdmin BOOLEAN DEFAULT FALSE
 );
 
