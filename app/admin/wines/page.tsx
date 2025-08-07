@@ -5,6 +5,13 @@ import Image from "next/image";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -23,7 +30,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Search, Edit, Trash2, Eye } from "lucide-react";
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { Wine } from "@/lib/admin/types";
 import WineForm from "@/components/admin/WineForm";
 import { toast } from "sonner";
@@ -31,21 +45,51 @@ import { toast } from "sonner";
 export default function TrangQuanLyRuou() {
   const [wines, setWines] = useState<Wine[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchParams, setSearchParams] = useState({
+    name: "",
+    type: "",
+    country: "",
+    year: "",
+    priceMin: "",
+    priceMax: "",
+    inStock: "",
+  });
   const [selectedWine, setSelectedWine] = useState<Wine | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
-  // Lấy danh sách rượu khi component được mount
+  // Lấy danh sách rượu khi component được mount hoặc page/searchParams thay đổi
   useEffect(() => {
     layDanhSachRuou();
-  }, []);
+  }, [page, searchParams]);
 
   const layDanhSachRuou = async () => {
     try {
-      const response = await fetch("/api/admin/wines");
+      const query = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+        ...(searchParams.name && { name: searchParams.name }),
+        ...(searchParams.type && { type: searchParams.type }),
+        ...(searchParams.country && { country: searchParams.country }),
+        ...(searchParams.year && { year: searchParams.year }),
+        ...(searchParams.priceMin && { priceMin: searchParams.priceMin }),
+        ...(searchParams.priceMax && { priceMax: searchParams.priceMax }),
+        ...(searchParams.inStock && { inStock: searchParams.inStock }),
+      }).toString();
+
+      const response = await fetch(`/api/admin/wines?${query}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("admin-token")}`,
+        },
+      });
       if (response.ok) {
         const data = await response.json();
-        setWines(data);
+        setWines(data.wines);
+        setTotal(data.total);
+        setTotalPages(data.totalPages);
       } else {
         toast.error("Không thể tải danh sách rượu");
       }
@@ -64,6 +108,9 @@ export default function TrangQuanLyRuou() {
     try {
       const response = await fetch(`/api/admin/wines/${id}`, {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("admin-token")}`,
+        },
       });
 
       if (response.ok) {
@@ -78,36 +125,90 @@ export default function TrangQuanLyRuou() {
     }
   };
 
-  // Lọc rượu dựa trên từ khóa tìm kiếm
-  const filteredWines = wines.filter(
-    (wine) =>
-      wine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      wine.country.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      wine.type.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   // Lấy trạng thái tồn kho
   const layTrangThaiTonKho = (inStock: boolean) => {
     if (!inStock) return { text: "Hết hàng", color: "bg-red-100 text-red-800" };
     return { text: "Còn hàng", color: "bg-green-100 text-green-800" };
   };
 
+  // Xử lý thay đổi tham số tìm kiếm
+  const handleSearchChange = (key: string, value: string) => {
+    setSearchParams((prev) => ({ ...prev, [key]: value }));
+    setPage(1); // Reset về trang 1 khi thay đổi tìm kiếm
+  };
+
   return (
     <AdminLayout title="Quản Lý Rượu">
       <div className="space-y-6">
-        {/* Hành động tiêu đề */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        {/* Form tìm kiếm */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               type="text"
-              placeholder="Tìm kiếm rượu..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-64"
+              placeholder="Tìm kiếm theo tên..."
+              value={searchParams.name}
+              onChange={(e) => handleSearchChange("name", e.target.value)}
+              className="pl-10"
             />
           </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Tìm kiếm theo loại..."
+              value={searchParams.type}
+              onChange={(e) => handleSearchChange("type", e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Tìm kiếm theo quốc gia..."
+              value={searchParams.country}
+              onChange={(e) => handleSearchChange("country", e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Input
+            type="number"
+            placeholder="Niên vụ (VD: 2020)"
+            value={searchParams.year}
+            onChange={(e) => handleSearchChange("year", e.target.value)}
+          />
+          <div className="flex space-x-2">
+            <Input
+              type="number"
+              placeholder="Giá tối thiểu"
+              value={searchParams.priceMin}
+              onChange={(e) => handleSearchChange("priceMin", e.target.value)}
+            />
+            <Input
+              type="number"
+              placeholder="Giá tối đa"
+              value={searchParams.priceMax}
+              onChange={(e) => handleSearchChange("priceMax", e.target.value)}
+            />
+          </div>
+          <Select
+            value={searchParams.inStock}
+            onValueChange={(value) => handleSearchChange("inStock", value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Trạng thái" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả</SelectItem>
+              <SelectItem value="true">Còn hàng</SelectItem>
+              <SelectItem value="false">Hết hàng</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
+        {/* Hành động tiêu đề */}
+        <div className="flex justify-end">
           <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
             <DialogTrigger asChild>
               <Button
@@ -197,8 +298,8 @@ export default function TrangQuanLyRuou() {
                     </TableCell>
                   </TableRow>
                 ))
-              ) : filteredWines.length > 0 ? (
-                filteredWines.map((wine) => {
+              ) : wines.length > 0 ? (
+                wines.map((wine) => {
                   const stockStatus = layTrangThaiTonKho(wine.inStock);
                   return (
                     <TableRow key={wine.id}>
@@ -225,7 +326,7 @@ export default function TrangQuanLyRuou() {
                       <TableCell>{wine.type}</TableCell>
                       <TableCell>{wine.country}</TableCell>
                       <TableCell>{wine.year || "N/A"}</TableCell>
-                      <TableCell>{wine.price.toFixed(2)} VNĐ</TableCell>
+                      <TableCell>{wine.price.toLocaleString()} VNĐ</TableCell>
                       <TableCell>
                         <Badge className={stockStatus.color}>
                           {stockStatus.text}
@@ -268,6 +369,35 @@ export default function TrangQuanLyRuou() {
               )}
             </TableBody>
           </Table>
+        </div>
+
+        {/* Phân trang */}
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-gray-500">
+            Hiển thị {(page - 1) * limit + 1} - {Math.min(page * limit, total)}{" "}
+            trong tổng số {total} sản phẩm
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page === 1}
+              onClick={() => setPage(page - 1)}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <div className="text-sm">
+              Trang {page} / {totalPages}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page === totalPages}
+              onClick={() => setPage(page + 1)}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </AdminLayout>
