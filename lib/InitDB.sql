@@ -178,10 +178,3 @@ VALUES
     ('5', 11), ('5', 12), ('5', 13), -- Dom Pérignon: Caviar, Hàu, Dessert
     ('6', 14), ('6', 15), ('6', 16); -- Rioja: Thịt cừu, Jamón, Phô mai Manchego
 
--- Chèn dữ liệu mẫu cho Orders
-INSERT INTO Orders (customer_id, total_amount, status, shipping_address)
-VALUES ('2', 5100000, 'pending', '123 Đường Láng, Hà Nội');
-
--- Chèn dữ liệu mẫu cho OrderItems
-INSERT INTO OrderItems (order_id, wine_id, quantity, unit_price)
-VALUES (1, '1', 2, 2500000);

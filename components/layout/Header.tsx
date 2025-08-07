@@ -81,6 +81,14 @@ export default function Header() {
                   {user.name}
                 </span>
 
+                {!!user.isAdmin && (
+                  <Link href="/admin">
+                    <Button variant="ghost" size="sm">
+                      Admin
+                    </Button>
+                  </Link>
+                )}
+
                 <Button
                   variant="ghost"
                   size="sm"
