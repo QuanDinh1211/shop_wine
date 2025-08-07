@@ -5,6 +5,13 @@ import Image from "next/image";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -23,7 +30,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Search, Eye, XCircle } from "lucide-react";
+import { Search, Eye, XCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { Order } from "@/lib/admin/types";
 import { toast } from "sonner";
 import { DialogClose } from "@radix-ui/react-dialog";
@@ -31,25 +38,45 @@ import { DialogClose } from "@radix-ui/react-dialog";
 export default function TrangQuanLyDonHang() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchParams, setSearchParams] = useState({
+    orderCode: "",
+    customerName: "",
+    status: "",
+  });
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
-  // Lấy danh sách đơn hàng khi component được mount
+  // Lấy danh sách đơn hàng khi component được mount hoặc page/searchParams thay đổi
   useEffect(() => {
     layDanhSachDonHang();
-  }, []);
+  }, [page, searchParams]);
 
   const layDanhSachDonHang = async () => {
     try {
-      const response = await fetch("/api/admin/orders", {
+      const query = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+        ...(searchParams.orderCode && { orderCode: searchParams.orderCode }),
+        ...(searchParams.customerName && {
+          customerName: searchParams.customerName,
+        }),
+        ...(searchParams.status && { status: searchParams.status }),
+      }).toString();
+
+      const response = await fetch(`/api/admin/orders?${query}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("admin-token")}`,
         },
       });
       if (response.ok) {
         const data = await response.json();
-        setOrders(data);
+        setOrders(data.orders);
+        setTotal(data.total);
+        setTotalPages(data.totalPages);
       } else {
         toast.error("Không thể tải danh sách đơn hàng");
       }
@@ -86,17 +113,11 @@ export default function TrangQuanLyDonHang() {
     }
   };
 
-  // Lọc đơn hàng dựa trên từ khóa tìm kiếm
-  const filteredOrders = orders.filter(
-    (order) =>
-      order.orderCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.shippingAddress.name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      order.shippingAddress.email
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
-  );
+  // Xử lý thay đổi tham số tìm kiếm
+  const handleSearchChange = (key: string, value: string) => {
+    setSearchParams((prev) => ({ ...prev, [key]: value }));
+    setPage(1); // Reset về trang 1 khi thay đổi tìm kiếm
+  };
 
   // Lấy trạng thái đơn hàng
   const layTrangThaiDonHang = (status: string) => {
@@ -133,18 +154,46 @@ export default function TrangQuanLyDonHang() {
   return (
     <AdminLayout title="Quản Lý Đơn Hàng">
       <div className="space-y-6">
-        {/* Hành động tiêu đề */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        {/* Form tìm kiếm */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               type="text"
-              placeholder="Tìm kiếm đơn hàng..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-64"
+              placeholder="Tìm kiếm mã đơn hàng..."
+              value={searchParams.orderCode}
+              onChange={(e) => handleSearchChange("orderCode", e.target.value)}
+              className="pl-10"
             />
           </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Tìm kiếm khách hàng..."
+              value={searchParams.customerName}
+              onChange={(e) =>
+                handleSearchChange("customerName", e.target.value)
+              }
+              className="pl-10"
+            />
+          </div>
+          <Select
+            value={searchParams.status}
+            onValueChange={(value) => handleSearchChange("status", value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Trạng thái" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả</SelectItem>
+              <SelectItem value="pending">Đang chờ</SelectItem>
+              <SelectItem value="processing">Đang xử lý</SelectItem>
+              <SelectItem value="shipped">Đã giao</SelectItem>
+              <SelectItem value="delivered">Hoàn tất</SelectItem>
+              <SelectItem value="cancelled">Đã hủy</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Bảng danh sách đơn hàng */}
@@ -184,8 +233,8 @@ export default function TrangQuanLyDonHang() {
                     </TableCell>
                   </TableRow>
                 ))
-              ) : filteredOrders.length > 0 ? (
-                filteredOrders.map((order) => {
+              ) : orders.length > 0 ? (
+                orders.map((order) => {
                   const status = layTrangThaiDonHang(order.status);
                   return (
                     <TableRow key={order.id}>
@@ -230,7 +279,6 @@ export default function TrangQuanLyDonHang() {
                                 <Eye className="h-4 w-4" />
                               </Button>
                             </DialogTrigger>
-
                             <DialogContent
                               hideClose
                               className="p-0 border-none max-w-5xl w-full max-h-[95vh] overflow-y-auto bg-transparent"
@@ -270,7 +318,6 @@ export default function TrangQuanLyDonHang() {
                                         order.createdAt
                                       ).toLocaleString("vi-VN")}
                                     />
-
                                     <InfoLine
                                       label="Phương thức"
                                       value={layPhuongThucThanhToan(
@@ -426,6 +473,35 @@ export default function TrangQuanLyDonHang() {
               )}
             </TableBody>
           </Table>
+        </div>
+
+        {/* Phân trang */}
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-gray-500">
+            Hiển thị {(page - 1) * limit + 1} - {Math.min(page * limit, total)}{" "}
+            trong tổng số {total} đơn hàng
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page === 1}
+              onClick={() => setPage(page - 1)}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <div className="text-sm">
+              Trang {page} / {totalPages}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page === totalPages}
+              onClick={() => setPage(page + 1)}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </AdminLayout>
