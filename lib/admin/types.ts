@@ -114,3 +114,89 @@ export interface DashboardStats {
   totalRevenue: number;
   recentOrders: Order[];
 }
+
+export interface Wine {
+  id: string;
+  name: string;
+  type: string;
+  wineTypeId: number;
+  country: string;
+  countryId: number;
+  region: string | null;
+  year: number | null;
+  price: number;
+  originalPrice: number | null;
+  rating: number | null;
+  reviews: number;
+  description: string | null;
+  images: string[];
+  inStock: boolean;
+  featured: boolean;
+  alcohol: number | null;
+  volume: number | null;
+  winery: string | null;
+  servingTemp: string | null;
+  grapes: string[];
+  pairings: string[];
+}
+
+export interface CartItem {
+  wine: Wine;
+  quantity: number;
+  unitPrice: number;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  phone?: string;
+  address?: string;
+  isAdmin: boolean;
+  orders?: Order[];
+}
+
+export interface Order {
+  id: string;
+  orderCode: string;
+  userId: string;
+  items: CartItem[];
+  total: number;
+  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
+  createdAt: string;
+  shippingAddress: {
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+  };
+  paymentMethod: "cod" | "bank" | "card";
+  notes: string | null;
+}
+
+export interface Country {
+  id: number;
+  name: string;
+  wines?: Wine[];
+}
+
+export interface WineType {
+  id: number;
+  name: string;
+  wines?: Wine[];
+}
+
+export interface ContactMessage {
+  id: number;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  createdAt: string;
+}
+
+export interface NewsletterSubscriber {
+  id: number;
+  email: string;
+  subscribedAt: string;
+}

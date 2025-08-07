@@ -64,12 +64,10 @@ export async function POST(request: Request) {
       );
     }
 
-    console.log("JWT_SECRET login:", process.env.JWT_SECRET);
-
     // Tạo JWT token
     const token = jwt.sign(
       { id: user.id, email: user.email, isAdmin: user.isAdmin },
-      process.env.JWT_SECRET || "your_jwt_secret_key_12345",
+      process.env.JWT_SECRET_ADMIN || "your_jwt_secret_key_12345",
       { expiresIn: "12h" }
     );
 

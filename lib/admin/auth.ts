@@ -17,7 +17,7 @@ export function verifyAdminToken(token: string): DecodedToken | null {
   try {
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET || "your_jwt_secret_key_12345"
+      process.env.JWT_SECRET_ADMIN || "your_jwt_secret_key_12345"
     ) as DecodedToken;
 
     if (!decoded.isAdmin) return null;

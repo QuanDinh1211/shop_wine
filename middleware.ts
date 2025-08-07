@@ -4,8 +4,8 @@ import { jwtVerify } from "jose";
 
 // Hàm lấy secret để verify token
 function getJwtSecretKey() {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) throw new Error("JWT_SECRET is not defined");
+  const secret = process.env.JWT_SECRET_ADMIN;
+  if (!secret) throw new Error("JWT_SECRET_ADMIN is not defined");
   return new TextEncoder().encode(secret);
 }
 

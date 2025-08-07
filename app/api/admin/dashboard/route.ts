@@ -99,7 +99,7 @@ export async function GET(request: Request) {
         name: row.full_name || row.customer_name || "Unknown",
         phone: row.phone || "",
         address: row.shipping_address || "",
-        city: "", // Không có cột city riêng, lấy từ shipping_address nếu cần
+        email: "", // Không có cột city riêng, lấy từ shipping_address nếu cần
       },
       paymentMethod: row.payment_method || "cod",
     }));
