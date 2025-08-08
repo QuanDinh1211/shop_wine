@@ -124,4 +124,16 @@
       padding: 8px 12px !important;
     }
   }
+
+  /* Đảm bảo icon search không bị đè text trên mobile */
+  @media (max-width: 768px) {
+    .relative input[placeholder="Tìm kiếm sản phẩm..."] {
+      padding-left: 40px !important;
+    }
+
+    .relative .absolute.left-3 {
+      z-index: 10 !important;
+      pointer-events: none !important;
+    }
+  }
 }

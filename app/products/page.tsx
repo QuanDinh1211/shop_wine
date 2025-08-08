@@ -356,10 +356,6 @@ function LoadingSkeleton() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm animate-pulse">
               <div className="flex items-center space-x-4">
-                <div className="h-8 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
-              </div>
-              <div className="flex items-center space-x-4">
                 <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded"></div>
                 <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
               </div>
