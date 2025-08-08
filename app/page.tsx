@@ -22,10 +22,15 @@ import { toast } from "sonner";
 export default function HomePage() {
   const [featuredWines, setFeaturedWines] = useState<Wine[]>([]);
   const [flashSaleWines, setFlashSaleWines] = useState<Wine[]>([]);
+  const [wineTypes, setWineTypes] = useState<{ type: string; wines: Wine[] }[]>(
+    []
+  );
   const [loading, setLoading] = useState<boolean>(true);
   const [flashSaleLoading, setFlashSaleLoading] = useState<boolean>(true);
+  const [wineTypesLoading, setWineTypesLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [flashSaleError, setFlashSaleError] = useState<string | null>(null);
+  const [wineTypesError, setWineTypesError] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState({
     hours: 0,
     minutes: 0,
@@ -68,10 +73,37 @@ export default function HomePage() {
     }
   };
 
-  // Đồng hồ đếm ngược cho FLASH SALE (ví dụ: 24 giờ)
+  // Lấy danh sách sản phẩm theo loại rượu
+  const fetchWineTypes = async () => {
+    setWineTypesLoading(true);
+    setWineTypesError(null);
+    try {
+      const types = ["red", "white", "rose", "sparkling"];
+      const wineTypesData = await Promise.all(
+        types.map(async (type) => {
+          const res = await fetch(`/api/wines?type=${type}&limit=4`, {
+            cache: "no-store",
+          });
+          if (!res.ok) {
+            throw new Error(`Không thể lấy danh sách sản phẩm loại ${type}`);
+          }
+          const { wines }: { wines: Wine[] } = await res.json();
+
+          return { type, wines };
+        })
+      );
+      setWineTypes(wineTypesData);
+      setWineTypesLoading(false);
+    } catch (err: any) {
+      setWineTypesError(err.message);
+      setWineTypesLoading(false);
+    }
+  };
+
+  // Đồng hồ đếm ngược cho FLASH SALE
   useEffect(() => {
     const endTime = new Date();
-    endTime.setHours(endTime.getHours() + 12); // Kết thúc sau 24 giờ
+    endTime.setHours(endTime.getHours() + 24);
 
     const updateTimer = () => {
       const now = new Date();
@@ -94,6 +126,7 @@ export default function HomePage() {
   useEffect(() => {
     fetchFeaturedWines();
     fetchFlashSaleWines();
+    fetchWineTypes();
   }, []);
 
   const [email, setEmail] = useState("");
@@ -130,6 +163,21 @@ export default function HomePage() {
       toast.error(error.message);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const getTypeName = (type: string) => {
+    switch (type) {
+      case "red":
+        return "Rượu Vang Đỏ";
+      case "white":
+        return "Rượu Vang Trắng";
+      case "rose":
+        return "Rượu Vang Hồng";
+      case "sparkling":
+        return "Rượu Vang Sủi";
+      default:
+        return type;
     }
   };
 
@@ -216,6 +264,73 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Why Choose Us */}
+      <section className="py-16 lg:py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              Tại sao chọn WineVault?
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              Chúng tôi cam kết mang đến trải nghiệm mua sắm tuyệt vời nhất cho
+              khách hàng
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="text-center p-6 rounded-xl bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Award className="h-8 w-8 text-red-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                Chất lượng đảm bảo
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Tất cả sản phẩm đều được kiểm tra chất lượng nghiêm ngặt trước
+                khi đến tay khách hàng
+              </p>
+            </div>
+
+            <div className="text-center p-6 rounded-xl bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Truck className="h-8 w-8 text-red-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                Giao hàng nhanh
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Giao hàng toàn quốc trong 24-48h với hệ thống logistics chuyên
+                nghiệp
+              </p>
+            </div>
+
+            <div className="text-center p-6 rounded-xl bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Shield className="h-8 w-8 text-red-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                Bảo hành chính hãng
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Cam kết sản phẩm chính hãng 100% với chính sách bảo hành rõ ràng
+              </p>
+            </div>
+
+            <div className="text-center p-6 rounded-xl bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Star className="h-8 w-8 text-red-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                Dịch vụ 5 sao
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Đội ngũ tư vấn chuyên nghiệp, hỗ trợ khách hàng 24/7
+              </p>
             </div>
           </div>
         </div>
@@ -362,70 +477,83 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Why Choose Us */}
-      <section className="py-16 lg:py-24">
+      {/* Products by Wine Type Section */}
+      <section className="py-16 lg:py-24 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Tại sao chọn WineVault?
+              Sản phẩm theo loại rượu
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Chúng tôi cam kết mang đến trải nghiệm mua sắm tuyệt vời nhất cho
-              khách hàng
+              Khám phá bộ sưu tập rượu vang theo từng loại, từ đỏ đậm đà đến sủi
+              tăm tinh tế
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="text-center p-6 rounded-xl bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Award className="h-8 w-8 text-red-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Chất lượng đảm bảo
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Tất cả sản phẩm đều được kiểm tra chất lượng nghiêm ngặt trước
-                khi đến tay khách hàng
-              </p>
+          {wineTypesLoading ? (
+            <div className="space-y-12">
+              {[...Array(4)].map((_, index) => (
+                <div key={index}>
+                  <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+                    {[...Array(4)].map((_, subIndex) => (
+                      <div
+                        key={subIndex}
+                        className="border rounded-lg p-4 shadow-sm bg-white dark:bg-gray-800 animate-pulse"
+                      >
+                        <div className="w-full h-64 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                        <div className="mt-4 h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                        <div className="mt-2 h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                        <div className="mt-2 h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+                        <div className="mt-4 h-10 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
-
-            <div className="text-center p-6 rounded-xl bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Truck className="h-8 w-8 text-red-600" />
+          ) : wineTypesError ? (
+            <div className="flex flex-col items-center justify-center h-64 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-4">
+              <div className="text-red-600 text-2xl font-semibold mb-2">
+                Ôi không, có lỗi xảy ra!
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Giao hàng nhanh
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Giao hàng toàn quốc trong 24-48h với hệ thống logistics chuyên
-                nghiệp
+              <p className="text-gray-600 dark:text-gray-400 text-center mb-4">
+                {wineTypesError}
               </p>
+              <Button
+                onClick={fetchWineTypes}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                <RefreshCw className="mr-2 h-5 w-5" />
+                Thử lại
+              </Button>
             </div>
-
-            <div className="text-center p-6 rounded-xl bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="h-8 w-8 text-red-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Bảo hành chính hãng
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Cam kết sản phẩm chính hãng 100% với chính sách bảo hành rõ ràng
-              </p>
+          ) : (
+            <div className="space-y-12">
+              {wineTypes.map(({ type, wines }) => (
+                <div key={type}>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                      {getTypeName(type)}
+                    </h3>
+                    <Link href={`/products?type=${type}`}>
+                      <Button
+                        variant="link"
+                        className="text-red-600 dark:text-red-400 hover:underline"
+                      >
+                        Xem thêm <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </Link>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+                    {wines.map((wine) => (
+                      <ProductCard key={wine.id} wine={wine} />
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
-
-            <div className="text-center p-6 rounded-xl bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="h-8 w-8 text-red-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Dịch vụ 5 sao
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Đội ngũ tư vấn chuyên nghiệp, hỗ trợ khách hàng 24/7
-              </p>
-            </div>
-          </div>
+          )}
         </div>
       </section>
 
