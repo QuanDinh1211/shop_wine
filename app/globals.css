@@ -127,11 +127,20 @@
 
   /* Đảm bảo icon search không bị đè text trên mobile */
   @media (max-width: 768px) {
-    .relative input[placeholder="Tìm kiếm sản phẩm..."] {
+    .relative.input-search input[placeholder="Tìm kiếm sản phẩm..."] {
       padding-left: 40px !important;
     }
 
     .relative .absolute.left-3 {
+      z-index: 10 !important;
+      pointer-events: none !important;
+    }
+
+    .relative.input-email-icon input[placeholder="Nhập email của bạn"] {
+      padding-left: 40px !important;
+    }
+
+    .relative.input-email-icon .absolute.left-3 {
       z-index: 10 !important;
       pointer-events: none !important;
     }

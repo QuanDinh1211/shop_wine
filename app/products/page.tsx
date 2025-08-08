@@ -190,7 +190,7 @@ function ProductsContent({ initialWines }: { initialWines: Wine[] }) {
                     placeholder="Tìm kiếm sản phẩm..."
                     value={searchText}
                     onChange={(e) => setSearchText(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 input-search"
                   />
                 </div>
                 <Sheet>
