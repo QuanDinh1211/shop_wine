@@ -14,15 +14,25 @@ import {
   Star,
   RefreshCw,
   Mail,
+  Clock,
 } from "lucide-react";
 import { Wine } from "@/lib/types";
 import { toast } from "sonner";
 
 export default function HomePage() {
   const [featuredWines, setFeaturedWines] = useState<Wine[]>([]);
+  const [flashSaleWines, setFlashSaleWines] = useState<Wine[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [flashSaleLoading, setFlashSaleLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [flashSaleError, setFlashSaleError] = useState<string | null>(null);
+  const [timeLeft, setTimeLeft] = useState({
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
 
+  // Lấy danh sách sản phẩm nổi bật
   const fetchFeaturedWines = async () => {
     setLoading(true);
     setError(null);
@@ -40,8 +50,50 @@ export default function HomePage() {
     }
   };
 
+  // Lấy danh sách sản phẩm FLASH SALE
+  const fetchFlashSaleWines = async () => {
+    setFlashSaleLoading(true);
+    setFlashSaleError(null);
+    try {
+      const res = await fetch("/api/wines/flash-sale", { cache: "no-store" });
+      if (!res.ok) {
+        throw new Error("Không thể lấy danh sách sản phẩm FLASH SALE");
+      }
+      const data: Wine[] = await res.json();
+      setFlashSaleWines(data);
+      setFlashSaleLoading(false);
+    } catch (err: any) {
+      setFlashSaleError(err.message);
+      setFlashSaleLoading(false);
+    }
+  };
+
+  // Đồng hồ đếm ngược cho FLASH SALE (ví dụ: 24 giờ)
+  useEffect(() => {
+    const endTime = new Date();
+    endTime.setHours(endTime.getHours() + 12); // Kết thúc sau 24 giờ
+
+    const updateTimer = () => {
+      const now = new Date();
+      const diff = endTime.getTime() - now.getTime();
+      if (diff <= 0) {
+        setTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      setTimeLeft({ hours, minutes, seconds });
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     fetchFeaturedWines();
+    fetchFlashSaleWines();
   }, []);
 
   const [email, setEmail] = useState("");
@@ -229,6 +281,80 @@ export default function HomePage() {
                 className="bg-red-600 hover:bg-red-700 text-white"
               >
                 Xem tất cả sản phẩm
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* FLASH SALE Section */}
+      <section className="py-16 lg:py-24 bg-red-50 dark:bg-red-900/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              FLASH SALE
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              Cơ hội sở hữu những chai rượu vang cao cấp với giá ưu đãi đặc
+              biệt! Nhanh tay trước khi hết thời gian!
+            </p>
+            <div className="flex justify-center items-center mt-4">
+              <Clock className="h-6 w-6 text-red-600 mr-2" />
+              <span className="text-xl font-semibold text-red-600 dark:text-red-400">
+                {timeLeft.hours.toString().padStart(2, "0")}:
+                {timeLeft.minutes.toString().padStart(2, "0")}:
+                {timeLeft.seconds.toString().padStart(2, "0")}
+              </span>
+            </div>
+          </div>
+
+          {flashSaleLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+              {[...Array(4)].map((_, index) => (
+                <div
+                  key={index}
+                  className="border rounded-lg p-4 shadow-sm bg-white dark:bg-gray-800 animate-pulse"
+                >
+                  <div className="w-full h-64 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                  <div className="mt-4 h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                  <div className="mt-2 h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                  <div className="mt-2 h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+                  <div className="mt-4 h-10 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                </div>
+              ))}
+            </div>
+          ) : flashSaleError ? (
+            <div className="flex flex-col items-center justify-center h-64 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-4">
+              <div className="text-red-600 text-2xl font-semibold mb-2">
+                Ôi không, có lỗi xảy ra!
+              </div>
+              <p className="text-gray-600 dark:text-gray-400 text-center mb-4">
+                {flashSaleError}
+              </p>
+              <Button
+                onClick={fetchFlashSaleWines}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                <RefreshCw className="mr-2 h-5 w-5" />
+                Thử lại
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+              {flashSaleWines.map((wine) => (
+                <ProductCard key={wine.id} wine={wine} />
+              ))}
+            </div>
+          )}
+
+          <div className="text-center">
+            <Link href="/products?flashSale=true">
+              <Button
+                size="lg"
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                Xem tất cả FLASH SALE
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
