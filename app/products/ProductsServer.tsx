@@ -4,7 +4,7 @@ export default async function ProductsServer() {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_BASE_URL}/api/wines/all`,
-      { cache: "no-store" }
+      { cache: "force-cache", next: { revalidate: 3600 } }
     );
     if (!res.ok) {
       return { wines: [] };

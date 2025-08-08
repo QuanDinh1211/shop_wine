@@ -1,9 +1,10 @@
 "use client";
 
-import { Suspense, useState, useMemo } from "react";
+import { Suspense, useState, useMemo, useEffect } from "react";
 import { Wine, FilterOptions } from "@/lib/types";
 import ProductCard from "@/components/products/ProductCard";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -12,11 +13,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Filter, Grid, List } from "lucide-react";
-import ProductsServer from "./ProductsServer";
-import { useSearchParams } from "next/navigation";
-
+import { Filter, Grid, List, Search } from "lucide-react";
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
+import { useDebounce } from "use-debounce";
+import { Component, ReactNode } from "react";
+import ProductsServer from "./ProductsServer";
+
 const ProductFilters = dynamic(
   () => import("@/components/products/ProductFilters"),
   {
@@ -25,6 +28,31 @@ const ProductFilters = dynamic(
   }
 );
 
+// Error Boundary Component
+type ErrorBoundaryProps = {
+  children: ReactNode;
+  fallback: ReactNode;
+};
+
+type ErrorBoundaryState = {
+  hasError: boolean;
+};
+
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  state: ErrorBoundaryState = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
+
 type SortOption =
   | "price-asc"
   | "price-desc"
@@ -32,7 +60,7 @@ type SortOption =
   | "name-asc"
   | "year-desc";
 
-function ProductsContent({ wines }: { wines: Wine[] }) {
+function ProductsContent({ initialWines }: { initialWines: Wine[] }) {
   const searchParams = useSearchParams();
   const defaultType = searchParams.get("type")?.split(",") || [];
   const defaultSearch = searchParams.get("search") || "";
@@ -45,50 +73,45 @@ function ProductsContent({ wines }: { wines: Wine[] }) {
     rating: 1,
   });
   const [searchText, setSearchText] = useState(defaultSearch);
-
+  const [debouncedSearch] = useDebounce(searchText, 500);
   const [sortBy, setSortBy] = useState<SortOption>("rating-desc");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   const filteredAndSortedWines = useMemo(() => {
-    let filtered = wines.filter((wine) => {
-      // Type filter
+    let filtered = initialWines.filter((wine) => {
+      if (
+        debouncedSearch &&
+        !wine.name.toLowerCase().includes(debouncedSearch.toLowerCase())
+      ) {
+        return false;
+      }
       if (filters.type.length > 0 && !filters.type.includes(wine.type)) {
         return false;
       }
-
-      // Country filter
       if (
         filters.country.length > 0 &&
         !filters.country.includes(wine.country)
       ) {
         return false;
       }
-
-      // Price filter
       if (
         wine.price < filters.priceRange[0] ||
         wine.price > filters.priceRange[1]
       ) {
         return false;
       }
-
-      // Year filter
       if (
         wine.year &&
         (wine.year < filters.year[0] || wine.year > filters.year[1])
       ) {
         return false;
       }
-
-      // Rating filter
       if (wine.rating && wine.rating < filters.rating) {
         return false;
       }
-
       return true;
     });
 
-    // Sort
     filtered.sort((a, b) => {
       switch (sortBy) {
         case "price-asc":
@@ -107,7 +130,7 @@ function ProductsContent({ wines }: { wines: Wine[] }) {
     });
 
     return filtered;
-  }, [filters, sortBy, wines]);
+  }, [filters, sortBy, debouncedSearch, initialWines]);
 
   const clearFilters = () => {
     setFilters({
@@ -117,12 +140,27 @@ function ProductsContent({ wines }: { wines: Wine[] }) {
       year: [new Date().getFullYear() - 20, new Date().getFullYear()],
       rating: 1,
     });
+    setSearchText("");
   };
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (debouncedSearch) {
+      params.set("search", debouncedSearch);
+    } else {
+      params.delete("search");
+    }
+    if (filters.type.length > 0) {
+      params.set("type", filters.type.join(","));
+    } else {
+      params.delete("type");
+    }
+    window.history.replaceState(null, "", `?${params.toString()}`);
+  }, [debouncedSearch, filters.type]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
             Sản phẩm
@@ -133,7 +171,6 @@ function ProductsContent({ wines }: { wines: Wine[] }) {
         </div>
 
         <div className="flex gap-8">
-          {/* Desktop Filters */}
           <div className="hidden lg:block w-80 flex-shrink-0">
             <div className="sticky top-24">
               <ProductFilters
@@ -144,12 +181,18 @@ function ProductsContent({ wines }: { wines: Wine[] }) {
             </div>
           </div>
 
-          {/* Main Content */}
           <div className="flex-1 min-w-0">
-            {/* Toolbar */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-              {/* Left side (Filter + Products count) */}
               <div className="flex items-center gap-4 min-w-0">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Tìm kiếm sản phẩm..."
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
                 <Sheet>
                   <SheetTrigger asChild>
                     <Button
@@ -174,13 +217,11 @@ function ProductsContent({ wines }: { wines: Wine[] }) {
                     </div>
                   </SheetContent>
                 </Sheet>
-
                 <span className="text-sm text-gray-600 dark:text-gray-400 truncate">
                   {filteredAndSortedWines.length} sản phẩm
                 </span>
               </div>
 
-              {/* Right side (Sort + View mode) */}
               <div className="flex items-center justify-end gap-4 min-w-0">
                 <Select
                   value={sortBy}
@@ -221,7 +262,6 @@ function ProductsContent({ wines }: { wines: Wine[] }) {
               </div>
             </div>
 
-            {/* Products Grid */}
             {filteredAndSortedWines.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-500 dark:text-gray-400 mb-4">
@@ -258,9 +298,17 @@ function ProductsContent({ wines }: { wines: Wine[] }) {
 export default async function ProductsPage() {
   const { wines } = await ProductsServer();
   return (
-    <Suspense fallback={<LoadingSkeleton />}>
-      <ProductsContent wines={wines} />
-    </Suspense>
+    <ErrorBoundary
+      fallback={
+        <div className="text-center py-12">
+          <p className="text-red-500">Đã xảy ra lỗi khi tải sản phẩm.</p>
+        </div>
+      }
+    >
+      <Suspense fallback={<LoadingSkeleton />}>
+        <ProductsContent initialWines={wines} />
+      </Suspense>
+    </ErrorBoundary>
   );
 }
 
