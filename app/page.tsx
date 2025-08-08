@@ -183,9 +183,9 @@ export default function HomePage() {
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
               {/* Skeleton Loader */}
-              {[...Array(3)].map((_, index) => (
+              {[...Array(4)].map((_, index) => (
                 <div
                   key={index}
                   className="border rounded-lg p-4 shadow-sm bg-white dark:bg-gray-800 animate-pulse"
@@ -215,7 +215,7 @@ export default function HomePage() {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
               {featuredWines.map((wine) => (
                 <ProductCard key={wine.id} wine={wine} />
               ))}
