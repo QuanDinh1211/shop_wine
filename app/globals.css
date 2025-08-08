@@ -109,4 +109,19 @@
       padding: 12px 16px !important;
     }
   }
+
+  /* Bỏ viền khi focus vào input tìm kiếm sản phẩm */
+  input[placeholder="Tìm kiếm sản phẩm..."]:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: inherit !important;
+  }
+
+  /* Giảm height của input tìm kiếm trên mobile */
+  @media (max-width: 768px) {
+    input[placeholder="Tìm kiếm sản phẩm..."] {
+      min-height: 36px !important;
+      padding: 8px 12px !important;
+    }
+  }
 }

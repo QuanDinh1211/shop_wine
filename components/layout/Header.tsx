@@ -19,6 +19,57 @@ const NAVIGATION_ITEMS = [
   { href: "/history", label: "Lịch sử đặt hàng" },
 ];
 
+const SearchComponent = ({
+  isMobile = false,
+  isSearching = false,
+  searchTerm = "",
+  setSearchTerm = () => {},
+  onSearch = () => {},
+}: {
+  isMobile?: boolean;
+  isSearching?: boolean;
+  searchTerm?: string;
+  setSearchTerm?: (value: string) => void;
+  onSearch?: () => void;
+}) => (
+  <div className={isMobile ? "w-full" : "hidden md:flex flex-1 mx-8 max-w-md"}>
+    <div className="relative w-full flex items-stretch">
+      <div className="relative flex-1">
+        <Input
+          type="text"
+          placeholder="Tìm kiếm sản phẩm..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-4 pr-4 py-2 w-full rounded-r-none h-full"
+          disabled={isSearching}
+          aria-label="Tìm kiếm sản phẩm"
+          autoComplete="off"
+          spellCheck="false"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              onSearch();
+            }
+          }}
+        />
+      </div>
+      <Button
+        type="button"
+        onClick={onSearch}
+        disabled={isSearching || !searchTerm.trim()}
+        className="bg-red-600 hover:bg-red-700 text-white px-4 rounded-l-none border-l-0 h-auto flex items-center justify-center"
+        aria-label="Tìm kiếm"
+      >
+        {isSearching ? (
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+        ) : (
+          <Search className="h-4 w-4" />
+        )}
+      </Button>
+    </div>
+  </div>
+);
+
 export default function Header() {
   const { state } = useCart();
   const { user, logout } = useAuth();
@@ -86,6 +137,25 @@ export default function Header() {
     [searchTerm, router]
   );
 
+  // Search button handler
+  const handleSearchClick = useCallback(async () => {
+    const trimmedSearch = searchTerm.trim();
+    if (!trimmedSearch) return;
+
+    setIsSearching(true);
+    try {
+      await router.push(
+        `/products?search=${encodeURIComponent(trimmedSearch)}`
+      );
+      setMobileMenuOpen(false);
+      setSearchTerm("");
+    } catch (error: any) {
+      console.error("Search navigation error:", error);
+    } finally {
+      setIsSearching(false);
+    }
+  }, [searchTerm, router]);
+
   // Link click handler
   const handleLinkClick = useCallback(() => {
     setMobileMenuOpen(false);
@@ -119,25 +189,6 @@ export default function Header() {
   );
 
   // Search component
-  const SearchComponent = ({ isMobile = false }: { isMobile?: boolean }) => (
-    <form
-      onSubmit={handleSearch}
-      className={isMobile ? "w-full" : "hidden md:flex flex-1 mx-8 max-w-md"}
-    >
-      <div className="relative w-full">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-        <Input
-          type="text"
-          placeholder="Tìm kiếm sản phẩm..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 pr-4 py-2 w-full"
-          disabled={isSearching}
-          aria-label="Tìm kiếm sản phẩm"
-        />
-      </div>
-    </form>
-  );
 
   // Cart button component
   const CartButton = () => (
@@ -243,7 +294,12 @@ export default function Header() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Logo />
-            <SearchComponent />
+            <SearchComponent
+              isSearching={isSearching}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              onSearch={handleSearchClick}
+            />
 
             <div className="flex items-center space-x-4">
               <CartButton />
@@ -291,7 +347,13 @@ export default function Header() {
 
           {/* Search in sidebar */}
           <div className="p-4">
-            <SearchComponent isMobile />
+            <SearchComponent
+              isMobile
+              isSearching={isSearching}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              onSearch={handleSearchClick}
+            />
           </div>
 
           {/* Navigation in sidebar */}
