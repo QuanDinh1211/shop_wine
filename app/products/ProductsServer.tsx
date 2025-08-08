@@ -7,11 +7,11 @@ export default async function ProductsServer() {
       { cache: "force-cache", next: { revalidate: 3600 } }
     );
     if (!res.ok) {
-      return { wines: [] };
+      return { wines: [], error: true };
     }
     const data: Wine[] = await res.json();
-    return { wines: data };
+    return { wines: data, error: null };
   } catch (err: any) {
-    return { wines: [] };
+    return { wines: [], error: true };
   }
 }

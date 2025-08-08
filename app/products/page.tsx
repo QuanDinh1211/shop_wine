@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Wine, FilterOptions } from "@/lib/types";
 import ProductCard from "@/components/products/ProductCard";
 import { Button } from "@/components/ui/button";
@@ -156,7 +156,7 @@ function ProductsContent({ initialWines }: { initialWines: Wine[] }) {
       params.delete("type");
     }
     window.history.replaceState(null, "", `?${params.toString()}`);
-  }, [debouncedSearch, filters.type]);
+  }, [debouncedSearch, filters.type, searchParams]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -295,8 +295,34 @@ function ProductsContent({ initialWines }: { initialWines: Wine[] }) {
   );
 }
 
-export default async function ProductsPage() {
-  const { wines } = await ProductsServer();
+export default function ProductsPage() {
+  const [wines, setWines] = useState<Wine[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null | boolean>(null);
+
+  useEffect(() => {
+    async function fetchWines() {
+      setIsLoading(true);
+      const { wines, error } = await ProductsServer();
+      setWines(wines);
+      setError(error);
+      setIsLoading(false);
+    }
+    fetchWines();
+  }, []);
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-500">Đã xảy ra lỗi khi tải sản phẩm</p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return <LoadingSkeleton />;
+  }
+
   return (
     <ErrorBoundary
       fallback={
@@ -305,9 +331,7 @@ export default async function ProductsPage() {
         </div>
       }
     >
-      <Suspense fallback={<LoadingSkeleton />}>
-        <ProductsContent initialWines={wines} />
-      </Suspense>
+      <ProductsContent initialWines={wines} />
     </ErrorBoundary>
   );
 }
