@@ -30,6 +30,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="vi" suppressHydrationWarning>
+      <head>
+        {/* Ngăn iOS Safari auto zoom khi focus input */}
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        />
+      </head>
       <body className={inter.className}>
         <ThemeProvider
           attribute="class"

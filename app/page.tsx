@@ -269,73 +269,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Why Choose Us */}
-      <section className="py-16 lg:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Tại sao chọn WineVault?
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Chúng tôi cam kết mang đến trải nghiệm mua sắm tuyệt vời nhất cho
-              khách hàng
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="text-center p-6 rounded-xl bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Award className="h-8 w-8 text-red-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Chất lượng đảm bảo
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Tất cả sản phẩm đều được kiểm tra chất lượng nghiêm ngặt trước
-                khi đến tay khách hàng
-              </p>
-            </div>
-
-            <div className="text-center p-6 rounded-xl bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Truck className="h-8 w-8 text-red-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Giao hàng nhanh
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Giao hàng toàn quốc trong 24-48h với hệ thống logistics chuyên
-                nghiệp
-              </p>
-            </div>
-
-            <div className="text-center p-6 rounded-xl bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="h-8 w-8 text-red-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Bảo hành chính hãng
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Cam kết sản phẩm chính hãng 100% với chính sách bảo hành rõ ràng
-              </p>
-            </div>
-
-            <div className="text-center p-6 rounded-xl bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="h-8 w-8 text-red-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Dịch vụ 5 sao
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Đội ngũ tư vấn chuyên nghiệp, hỗ trợ khách hàng 24/7
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Featured Products */}
       <section className="py-16 lg:py-24 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -399,6 +332,73 @@ export default function HomePage() {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Why Choose Us */}
+      <section className="py-16 lg:py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              Tại sao chọn WineVault?
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              Chúng tôi cam kết mang đến trải nghiệm mua sắm tuyệt vời nhất cho
+              khách hàng
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="text-center p-6 rounded-xl bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Award className="h-8 w-8 text-red-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                Chất lượng đảm bảo
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Tất cả sản phẩm đều được kiểm tra chất lượng nghiêm ngặt trước
+                khi đến tay khách hàng
+              </p>
+            </div>
+
+            <div className="text-center p-6 rounded-xl bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Truck className="h-8 w-8 text-red-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                Giao hàng nhanh
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Giao hàng toàn quốc trong 24-48h với hệ thống logistics chuyên
+                nghiệp
+              </p>
+            </div>
+
+            <div className="text-center p-6 rounded-xl bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Shield className="h-8 w-8 text-red-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                Bảo hành chính hãng
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Cam kết sản phẩm chính hãng 100% với chính sách bảo hành rõ ràng
+              </p>
+            </div>
+
+            <div className="text-center p-6 rounded-xl bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Star className="h-8 w-8 text-red-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                Dịch vụ 5 sao
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Đội ngũ tư vấn chuyên nghiệp, hỗ trợ khách hàng 24/7
+              </p>
+            </div>
           </div>
         </div>
       </section>
