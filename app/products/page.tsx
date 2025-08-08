@@ -217,7 +217,7 @@ function ProductsContent({ initialWines }: { initialWines: Wine[] }) {
                     </div>
                   </SheetContent>
                 </Sheet>
-                <span className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                <span className="hidden lg:inline text-sm text-gray-600 dark:text-gray-400 truncate">
                   {filteredAndSortedWines.length} sản phẩm
                 </span>
               </div>
