@@ -7,7 +7,17 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ShoppingCart, User, LogOut, Menu, X, Search } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+
+// Constants
+const SCROLL_THRESHOLD = 80;
+const NAVIGATION_ITEMS = [
+  { href: "/", label: "Trang chủ" },
+  { href: "/products", label: "Sản phẩm" },
+  { href: "/about", label: "Giới thiệu" },
+  { href: "/contact", label: "Liên hệ" },
+  { href: "/history", label: "Lịch sử đặt hàng" },
+];
 
 export default function Header() {
   const { state } = useCart();
@@ -15,130 +25,230 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [showNav, setShowNav] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
   const lastScrollY = useRef(0);
   const router = useRouter();
 
-  // Ẩn/hiện Desktop Navigation khi cuộn
+  // Memoized values
+  const cartItemCount = useMemo(() => state.itemCount, [state.itemCount]);
+  const isUserLoggedIn = useMemo(() => !!user, [user]);
+  const isUserAdmin = useMemo(() => !!user?.isAdmin, [user?.isAdmin]);
+
+  // Scroll handler with throttling
   useEffect(() => {
+    let ticking = false;
+
     const handleScroll = () => {
-      const currentScroll = window.scrollY;
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const currentScroll = window.scrollY;
 
-      if (currentScroll > lastScrollY.current && currentScroll > 80) {
-        // Cuộn xuống
-        setShowNav(false);
-      } else {
-        // Cuộn lên
-        setShowNav(true);
+          if (
+            currentScroll > lastScrollY.current &&
+            currentScroll > SCROLL_THRESHOLD
+          ) {
+            setShowNav(false);
+          } else {
+            setShowNav(true);
+          }
+
+          lastScrollY.current = currentScroll;
+          ticking = false;
+        });
+        ticking = true;
       }
-
-      lastScrollY.current = currentScroll;
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchTerm.trim()) {
-      router.push(`/products?search=${encodeURIComponent(searchTerm.trim())}`);
-      setMobileMenuOpen(false);
-    }
-  };
+  // Search handler
+  const handleSearch = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      const trimmedSearch = searchTerm.trim();
 
-  const handleLinkClick = () => {
+      if (!trimmedSearch) return;
+
+      setIsSearching(true);
+      try {
+        await router.push(
+          `/products?search=${encodeURIComponent(trimmedSearch)}`
+        );
+        setMobileMenuOpen(false);
+      } catch (error) {
+        console.error("Search navigation error:", error);
+      } finally {
+        setIsSearching(false);
+      }
+    },
+    [searchTerm, router]
+  );
+
+  // Link click handler
+  const handleLinkClick = useCallback(() => {
     setMobileMenuOpen(false);
-  };
+  }, []);
+
+  // Logout handler
+  const handleLogout = useCallback(() => {
+    logout();
+    setMobileMenuOpen(false);
+  }, [logout]);
+
+  // Mobile menu toggle
+  const toggleMobileMenu = useCallback(() => {
+    setMobileMenuOpen((prev) => !prev);
+  }, []);
+
+  // Logo component
+  const Logo = () => (
+    <Link
+      href="/"
+      className="flex items-center space-x-2"
+      aria-label="Trang chủ"
+    >
+      <div className="w-8 h-8 bg-red-800 rounded-full flex items-center justify-center">
+        <span className="text-white font-bold text-sm">W</span>
+      </div>
+      <span className="text-xl font-bold text-gray-900 dark:text-white">
+        WineVault
+      </span>
+    </Link>
+  );
+
+  // Search component
+  const SearchComponent = ({ isMobile = false }: { isMobile?: boolean }) => (
+    <form
+      onSubmit={handleSearch}
+      className={isMobile ? "w-full" : "hidden md:flex flex-1 mx-8 max-w-md"}
+    >
+      <div className="relative w-full">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Input
+          type="text"
+          placeholder="Tìm kiếm sản phẩm..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10 pr-4 py-2 w-full"
+          disabled={isSearching}
+          aria-label="Tìm kiếm sản phẩm"
+        />
+      </div>
+    </form>
+  );
+
+  // Cart button component
+  const CartButton = () => (
+    <Link href="/cart" className="relative" aria-label="Giỏ hàng">
+      <Button variant="ghost" size="sm" className="relative">
+        <ShoppingCart className="h-5 w-5" />
+        {cartItemCount > 0 && (
+          <span
+            className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
+            aria-label={`${cartItemCount} sản phẩm trong giỏ hàng`}
+          >
+            {cartItemCount}
+          </span>
+        )}
+      </Button>
+    </Link>
+  );
+
+  // User actions component
+  const UserActions = () => (
+    <>
+      {isUserLoggedIn ? (
+        <div className="flex items-center space-x-2 hidden md:flex">
+          <span className="text-sm text-gray-700 dark:text-gray-300 hidden sm:block">
+            {user?.name}
+          </span>
+          {isUserAdmin && (
+            <Link href="/admin" aria-label="Trang quản trị">
+              <Button variant="ghost" size="sm">
+                Admin
+              </Button>
+            </Link>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLogout}
+            className="hidden sm:block"
+            aria-label="Đăng xuất"
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
+        </div>
+      ) : (
+        <Link className="hidden md:flex" href="/auth" aria-label="Đăng nhập">
+          <Button variant="ghost" size="sm">
+            <User className="h-4 w-4 mr-2" />
+            Đăng nhập
+          </Button>
+        </Link>
+      )}
+    </>
+  );
+
+  // Mobile menu button
+  const MobileMenuButton = () => (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="md:hidden"
+      onClick={toggleMobileMenu}
+      aria-label={mobileMenuOpen ? "Đóng menu" : "Mở menu"}
+      aria-expanded={mobileMenuOpen}
+    >
+      {mobileMenuOpen ? (
+        <X className="h-5 w-5" />
+      ) : (
+        <Menu className="h-5 w-5" />
+      )}
+    </Button>
+  );
+
+  // Navigation links component
+  const NavigationLinks = ({ isMobile = false }: { isMobile?: boolean }) => (
+    <nav
+      className={
+        isMobile
+          ? "flex-1 flex flex-col space-y-2 p-4"
+          : "flex justify-center items-center space-x-8 h-10"
+      }
+    >
+      {NAVIGATION_ITEMS.map((item) => (
+        <Link
+          key={item.href}
+          href={item.href}
+          className={
+            isMobile
+              ? "text-gray-700 dark:text-gray-300 hover:text-red-800 dark:hover:text-red-400 transition-colors py-2"
+              : "nav-link"
+          }
+          onClick={isMobile ? handleLinkClick : undefined}
+        >
+          {item.label}
+        </Link>
+      ))}
+    </nav>
+  );
 
   return (
     <>
-      {/* Header chính */}
-      <header className="bg-white dark:bg-gray-900 shadow-sm sticky top-0 z-50 border-b border-gray-200 dark:border-gray-800">
+      {/* Main Header */}
+      <header className="bg-white dark:bg-gray-900 shadow-sm sticky top-0 z-[90] border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-red-800 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">W</span>
-              </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">
-                WineVault
-              </span>
-            </Link>
+            <Logo />
+            <SearchComponent />
 
-            {/* Tìm kiếm Desktop */}
-            <form
-              onSubmit={handleSearch}
-              className="hidden md:flex flex-1 mx-8 max-w-md"
-            >
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  type="text"
-                  placeholder="Tìm kiếm sản phẩm..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 w-full"
-                />
-              </div>
-            </form>
-
-            {/* Nút hành động */}
             <div className="flex items-center space-x-4">
-              <Link href="/cart" className="relative">
-                <Button variant="ghost" size="sm" className="relative">
-                  <ShoppingCart className="h-5 w-5" />
-                  {state.itemCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                      {state.itemCount}
-                    </span>
-                  )}
-                </Button>
-              </Link>
-
-              {user ? (
-                <div className="flex items-center space-x-2 hidden md:flex">
-                  <span className="text-sm text-gray-700 dark:text-gray-300 hidden sm:block">
-                    {user.name}
-                  </span>
-                  {!!user.isAdmin && (
-                    <Link href="/admin">
-                      <Button variant="ghost" size="sm">
-                        Admin
-                      </Button>
-                    </Link>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={logout}
-                    className="hidden sm:block"
-                  >
-                    <LogOut className="h-4 w-4" />
-                  </Button>
-                </div>
-              ) : (
-                <Link className="hidden md:flex" href="/auth">
-                  <Button variant="ghost" size="sm">
-                    <User className="h-4 w-4 mr-2" />
-                    Đăng nhập
-                  </Button>
-                </Link>
-              )}
-
-              {/* Mobile menu */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="md:hidden"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              >
-                {mobileMenuOpen ? (
-                  <X className="h-5 w-5" />
-                ) : (
-                  <Menu className="h-5 w-5" />
-                )}
-              </Button>
+              <CartButton />
+              <UserActions />
+              <MobileMenuButton />
             </div>
           </div>
         </div>
@@ -146,28 +256,13 @@ export default function Header() {
 
       {/* Desktop Navigation */}
       <nav
-        className={`bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 transition-transform duration-300 md:block hidden sticky top-16 z-40 ${
+        className={`bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 transition-transform duration-300 md:block hidden sticky top-16 z-[85] ${
           showNav ? "translate-y-0" : "-translate-y-full"
         }`}
+        aria-label="Điều hướng chính"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-          <div className="flex justify-center items-center space-x-8 h-10">
-            <Link href="/" className="nav-link">
-              Trang chủ
-            </Link>
-            <Link href="/products" className="nav-link">
-              Sản phẩm
-            </Link>
-            <Link href="/about" className="nav-link">
-              Giới thiệu
-            </Link>
-            <Link href="/contact" className="nav-link">
-              Liên hệ
-            </Link>
-            <Link href="/history" className="nav-link">
-              Lịch sử đặt hàng
-            </Link>
-          </div>
+          <NavigationLinks />
         </div>
       </nav>
 
@@ -175,98 +270,49 @@ export default function Header() {
       <div
         className={`fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-900 transform ${
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        } transition-transform duration-300 ease-in-out z-50 md:hidden border-r border-gray-200 dark:border-gray-800`}
+        } transition-transform duration-300 ease-in-out z-[95] md:hidden border-r border-gray-200 dark:border-gray-800`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu điều hướng"
       >
         <div className="flex flex-col h-full">
-          {/* Header của sidebar */}
+          {/* Sidebar Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-red-800 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">W</span>
-              </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">
-                WineVault
-              </span>
-            </Link>
+            <Logo />
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setMobileMenuOpen(false)}
+              onClick={toggleMobileMenu}
+              aria-label="Đóng menu"
             >
               <X className="h-5 w-5" />
             </Button>
           </div>
 
-          {/* Tìm kiếm trong sidebar */}
+          {/* Search in sidebar */}
           <div className="p-4">
-            <form onSubmit={handleSearch}>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  type="text"
-                  placeholder="Tìm kiếm sản phẩm..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 w-full"
-                />
-              </div>
-            </form>
+            <SearchComponent isMobile />
           </div>
 
-          {/* Menu điều hướng */}
-          <nav className="flex-1 flex flex-col space-y-2 p-4">
-            <Link
-              href="/"
-              className="text-gray-700 dark:text-gray-300 hover:text-red-800 dark:hover:text-red-400 transition-colors py-2"
-              onClick={handleLinkClick}
-            >
-              Trang chủ
-            </Link>
-            <Link
-              href="/products"
-              className="text-gray-700 dark:text-gray-300 hover:text-red-800 dark:hover:text-red-400 transition-colors py-2"
-              onClick={handleLinkClick}
-            >
-              Sản phẩm
-            </Link>
-            <Link
-              href="/about"
-              className="text-gray-700 dark:text-gray-300 hover:text-red-800 dark:hover:text-red-400 transition-colors py-2"
-              onClick={handleLinkClick}
-            >
-              Giới thiệu
-            </Link>
-            <Link
-              href="/contact"
-              className="text-gray-700 dark:text-gray-300 hover:text-red-800 dark:hover:text-red-400 transition-colors py-2"
-              onClick={handleLinkClick}
-            >
-              Liên hệ
-            </Link>
-            <Link
-              href="/history"
-              className="text-gray-700 dark:text-gray-300 hover:text-red-800 dark:hover:text-red-400 transition-colors py-2"
-              onClick={handleLinkClick}
-            >
-              Lịch sử đặt hàng
-            </Link>
-            {user ? (
+          {/* Navigation in sidebar */}
+          <NavigationLinks isMobile />
+
+          {/* User actions in sidebar */}
+          <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+            {isUserLoggedIn ? (
               <>
-                {!!user.isAdmin && (
+                {isUserAdmin && (
                   <Link
                     href="/admin"
-                    className="text-gray-700 dark:text-gray-300 hover:text-red-800 dark:hover:text-red-400 transition-colors py-2"
+                    className="text-gray-700 dark:text-gray-300 hover:text-red-800 dark:hover:text-red-400 transition-colors py-2 block"
                     onClick={handleLinkClick}
                   >
                     Admin
                   </Link>
                 )}
                 <button
-                  className="text-gray-700 dark:text-gray-300 hover:text-red-800 dark:hover:text-red-400 transition-colors py-2 text-left"
-                  onClick={() => {
-                    logout();
-                    setMobileMenuOpen(false);
-                  }}
+                  className="text-gray-700 dark:text-gray-300 hover:text-red-800 dark:hover:text-red-400 transition-colors py-2 text-left w-full"
+                  onClick={handleLogout}
                 >
                   Đăng xuất
                 </button>
@@ -274,21 +320,22 @@ export default function Header() {
             ) : (
               <Link
                 href="/auth"
-                className="text-gray-700 dark:text-gray-300 hover:text-red-800 dark:hover:text-red-400 transition-colors py-2"
+                className="text-gray-700 dark:text-gray-300 hover:text-red-800 dark:hover:text-red-400 transition-colors py-2 block"
                 onClick={handleLinkClick}
               >
                 Đăng nhập
               </Link>
             )}
-          </nav>
+          </div>
         </div>
       </div>
 
-      {/* Overlay khi sidebar mở */}
+      {/* Overlay when sidebar is open */}
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-          onClick={() => setMobileMenuOpen(false)}
+          className="fixed inset-0 bg-black bg-opacity-50 z-[90] md:hidden"
+          onClick={toggleMobileMenu}
+          aria-hidden="true"
         />
       )}
     </>
