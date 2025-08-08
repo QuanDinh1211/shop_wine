@@ -132,17 +132,24 @@ function ProductsContent({ wines }: { wines: Wine[] }) {
           {/* Main Content */}
           <div className="flex-1 min-w-0">
             {/* Toolbar */}
-            <div className="flex items-center justify-between mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-              <div className="flex items-center space-x-4">
-                {/* Mobile Filter Button */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+              {/* Left side (Filter + Products count) */}
+              <div className="flex items-center gap-4 min-w-0">
                 <Sheet>
                   <SheetTrigger asChild>
-                    <Button variant="outline" size="sm" className="lg:hidden">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="lg:hidden flex-shrink-0"
+                    >
                       <Filter className="h-4 w-4 mr-2" />
                       Bộ lọc
                     </Button>
                   </SheetTrigger>
-                  <SheetContent side="left" className="w-80 overflow-y-auto">
+                  <SheetContent
+                    side="left"
+                    className="w-full max-w-[90vw] sm:max-w-[320px] overflow-y-auto"
+                  >
                     <div className="py-4">
                       <ProductFilters
                         filters={filters}
@@ -153,18 +160,18 @@ function ProductsContent({ wines }: { wines: Wine[] }) {
                   </SheetContent>
                 </Sheet>
 
-                <span className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="text-sm text-gray-600 dark:text-gray-400 truncate">
                   {filteredAndSortedWines.length} sản phẩm
                 </span>
               </div>
 
-              <div className="flex items-center space-x-4">
-                {/* Sort */}
+              {/* Right side (Sort + View mode) */}
+              <div className="flex items-center justify-end gap-4 min-w-0">
                 <Select
                   value={sortBy}
                   onValueChange={(value: SortOption) => setSortBy(value)}
                 >
-                  <SelectTrigger className="w-48">
+                  <SelectTrigger className="flex-1 min-w-0 sm:w-48">
                     <SelectValue placeholder="Sắp xếp theo" />
                   </SelectTrigger>
                   <SelectContent>
@@ -178,8 +185,7 @@ function ProductsContent({ wines }: { wines: Wine[] }) {
                   </SelectContent>
                 </Select>
 
-                {/* View Mode */}
-                <div className="flex border rounded-md">
+                <div className="flex border rounded-md flex-shrink-0">
                   <Button
                     variant={viewMode === "grid" ? "default" : "ghost"}
                     size="sm"
