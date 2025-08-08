@@ -76,7 +76,7 @@ export default function Header() {
 
             {/* User menu */}
             {user ? (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 hidden md:flex">
                 <span className="text-sm text-gray-700 dark:text-gray-300 hidden sm:block">
                   {user.name}
                 </span>
@@ -99,7 +99,7 @@ export default function Header() {
                 </Button>
               </div>
             ) : (
-              <Link href="/auth">
+              <Link className="hidden md:flex" href="/auth">
                 <Button variant="ghost" size="sm">
                   <User className="h-4 w-4 mr-2" />
                   Đăng nhập
@@ -162,16 +162,29 @@ export default function Header() {
               >
                 Lịch sử đơn hàng
               </Link>
-              <Link
-                href="/"
-                className="text-gray-700 dark:text-gray-300 hover:text-red-800 dark:hover:text-red-400 transition-colors py-2"
-                onClick={() => {
-                  logout();
-                  setMobileMenuOpen(false);
-                }}
-              >
-                Đăng xuất
-              </Link>
+              {user ? (
+                <Link
+                  href="/"
+                  className="text-gray-700 dark:text-gray-300 hover:text-red-800 dark:hover:text-red-400 transition-colors py-2"
+                  onClick={() => {
+                    logout();
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  Đăng xuất
+                </Link>
+              ) : (
+                <Link
+                  href="/auth"
+                  className="text-gray-700 dark:text-gray-300 hover:text-red-800 dark:hover:text-red-400 transition-colors py-2"
+                  onClick={() => {
+                    logout();
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  Đăng nhập
+                </Link>
+              )}
             </nav>
           </div>
         )}

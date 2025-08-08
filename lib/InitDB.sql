@@ -68,6 +68,16 @@ CREATE TABLE WinePairings (
     FOREIGN KEY (pairing_id) REFERENCES Pairings(pairing_id)
 );
 
+-- Tạo bảng PasswordResetTokens
+CREATE TABLE PasswordResetTokens (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    customer_id VARCHAR(50) NOT NULL,
+    token VARCHAR(255) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES Customers(id) ON DELETE CASCADE
+);
+
 -- Tạo bảng Customers (đã sửa từ yêu cầu trước)
 CREATE TABLE Customers (
     id VARCHAR(50) PRIMARY KEY,
