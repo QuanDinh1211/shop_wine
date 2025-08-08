@@ -3,7 +3,6 @@
 import { Suspense, useState, useMemo } from "react";
 import { Wine, FilterOptions } from "@/lib/types";
 import ProductCard from "@/components/products/ProductCard";
-import ProductFilters from "@/components/products/ProductFilters";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -15,6 +14,16 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Filter, Grid, List } from "lucide-react";
 import ProductsServer from "./ProductsServer";
+import { useSearchParams } from "next/navigation";
+
+import dynamic from "next/dynamic";
+const ProductFilters = dynamic(
+  () => import("@/components/products/ProductFilters"),
+  {
+    ssr: false,
+    loading: () => <p>Đang tải bộ lọc...</p>,
+  }
+);
 
 type SortOption =
   | "price-asc"
@@ -24,13 +33,19 @@ type SortOption =
   | "year-desc";
 
 function ProductsContent({ wines }: { wines: Wine[] }) {
+  const searchParams = useSearchParams();
+  const defaultType = searchParams.get("type")?.split(",") || [];
+  const defaultSearch = searchParams.get("search") || "";
+
   const [filters, setFilters] = useState<FilterOptions>({
-    type: [],
+    type: defaultType,
     country: [],
     priceRange: [500000, 10000000],
     year: [new Date().getFullYear() - 20, new Date().getFullYear()],
     rating: 1,
   });
+  const [searchText, setSearchText] = useState(defaultSearch);
+
   const [sortBy, setSortBy] = useState<SortOption>("rating-desc");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
