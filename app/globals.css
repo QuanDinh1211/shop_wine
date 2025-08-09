@@ -119,28 +119,27 @@
 
   /* Giảm height của input tìm kiếm trên mobile */
   @media (max-width: 768px) {
-    input[placeholder="Tìm kiếm sản phẩm..."] {
+    input[placeholder="Tìm kiếm sản phẩm..."]:not(.input-search) {
       min-height: 36px !important;
       padding: 8px 12px !important;
     }
+
+    /* Input tìm kiếm có icon */
+    input.input-search[placeholder="Tìm kiếm sản phẩm..."] {
+      min-height: 36px !important;
+      padding: 8px 40px 8px 40px !important;
+    }
   }
 
-  /* Đảm bảo icon search không bị đè text trên mobile */
+  /* Đảm bảo icon không bị đè text trên mobile */
   @media (max-width: 768px) {
-    .relative.input-search input[placeholder="Tìm kiếm sản phẩm..."] {
+    /* Email input */
+    .relative input.input-email-icon {
       padding-left: 40px !important;
     }
 
+    /* All left-positioned icons */
     .relative .absolute.left-3 {
-      z-index: 10 !important;
-      pointer-events: none !important;
-    }
-
-    .relative.input-email-icon input[placeholder="Nhập email của bạn"] {
-      padding-left: 40px !important;
-    }
-
-    .relative.input-email-icon .absolute.left-3 {
       z-index: 10 !important;
       pointer-events: none !important;
     }
