@@ -275,7 +275,7 @@ function ProductsContent({ initialWines }: { initialWines: Wine[] }) {
               <div
                 className={
                   viewMode === "grid"
-                    ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
+                    ? "grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-2"
                     : "space-y-4"
                 }
               >

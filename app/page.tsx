@@ -283,7 +283,7 @@ export default function HomePage() {
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-12">
               {/* Skeleton Loader */}
               {[...Array(4)].map((_, index) => (
                 <div
@@ -315,7 +315,7 @@ export default function HomePage() {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-12">
               {featuredWines.map((wine) => (
                 <ProductCard key={wine.id} wine={wine} />
               ))}
@@ -425,7 +425,7 @@ export default function HomePage() {
           </div>
 
           {flashSaleLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-12">
               {[...Array(4)].map((_, index) => (
                 <div
                   key={index}
@@ -456,7 +456,7 @@ export default function HomePage() {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-12">
               {flashSaleWines.map((wine) => (
                 <ProductCard key={wine.id} wine={wine} />
               ))}
@@ -495,7 +495,7 @@ export default function HomePage() {
               {[...Array(4)].map((_, index) => (
                 <div key={index}>
                   <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+                  <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-12">
                     {[...Array(4)].map((_, subIndex) => (
                       <div
                         key={subIndex}
@@ -545,7 +545,7 @@ export default function HomePage() {
                       </Button>
                     </Link>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+                  <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-12">
                     {wines.map((wine) => (
                       <ProductCard key={wine.id} wine={wine} />
                     ))}
