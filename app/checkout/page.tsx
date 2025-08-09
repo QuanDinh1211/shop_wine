@@ -100,7 +100,6 @@ export default function Checkout() {
       setOrderStatus("success");
       clearCart();
       toast.success("Đơn hàng đã được đặt thành công!");
-      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) {
       setOrderStatus("error");
       toast.error("Đã xảy ra lỗi khi đặt hàng. Vui lòng thử lại!");
@@ -114,6 +113,8 @@ export default function Checkout() {
   }
 
   if (orderStatus === "success") {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
     return (
       <div className="min-h-screen py-12 flex items-center justify-center">
         <div className="max-w-2xl mx-auto px-4 text-center">
