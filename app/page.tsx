@@ -243,7 +243,7 @@ export default function HomePage() {
             <div className="relative">
               <div className="relative w-full h-96 lg:h-[500px] rounded-2xl overflow-hidden shadow-2xl">
                 <Image
-                  src="https://images.pexels.com/photos/1407244/pexels-photo-1407244.jpeg"
+                  src="https://images.pexels.com/photos/2664149/pexels-photo-2664149.jpeg"
                   alt="Premium wine collection"
                   fill
                   className="object-cover"

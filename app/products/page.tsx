@@ -206,7 +206,7 @@ function ProductsContent({ initialWines }: { initialWines: Wine[] }) {
                   </SheetTrigger>
                   <SheetContent
                     side="left"
-                    className="w-full max-w-[90vw] sm:max-w-[320px] overflow-y-auto"
+                    className="w-full max-w-[90vw] sm:max-w-[320px] overflow-y-auto z-[9999]"
                   >
                     <div className="py-4">
                       <ProductFilters
