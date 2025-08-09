@@ -19,6 +19,7 @@ import { useSearchParams } from "next/navigation";
 import { useDebounce } from "use-debounce";
 import { Component, ReactNode } from "react";
 import ProductsServer from "./ProductsServer";
+import Image from "next/image";
 
 const ProductFilters = dynamic(
   () => import("@/components/products/ProductFilters"),
@@ -160,16 +161,24 @@ function ProductsContent({ initialWines }: { initialWines: Wine[] }) {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-            Sản phẩm
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Khám phá bộ sưu tập rượu vang cao cấp từ khắp nơi trên thế giới
-          </p>
+      <section className="relative h-64 md:h-96">
+        <Image
+          src="https://images.pexels.com/photos/1283219/pexels-photo-1283219.jpeg"
+          alt="Bộ sưu tập rượu vang"
+          fill
+          className="object-cover brightness-75"
+          priority
+        />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center text-white px-4">
+            <h1 className="text-3xl md:text-5xl font-bold mb-2">Sản phẩm</h1>
+            <p className="text-lg md:text-xl max-w-2xl">
+              Khám phá bộ sưu tập rượu vang cao cấp từ khắp nơi trên thế giới
+            </p>
+          </div>
         </div>
-
+      </section>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex gap-8">
           <div className="hidden lg:block w-80 flex-shrink-0">
             <div className="sticky top-24">
@@ -339,11 +348,10 @@ export default function ProductsPage() {
 function LoadingSkeleton() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <section className="relative h-64 md:h-96 animate-pulse">
+        <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700"></div>
+      </section>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8 animate-pulse">
-          <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
-          <div className="h-4 w-96 bg-gray-200 dark:bg-gray-700 rounded"></div>
-        </div>
         <div className="flex gap-8">
           <div className="hidden lg:block w-80 flex-shrink-0">
             <div className="space-y-4 animate-pulse">
