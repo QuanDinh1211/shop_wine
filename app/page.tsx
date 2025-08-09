@@ -577,6 +577,7 @@ export default function HomePage() {
                 type="email"
                 placeholder="Nhập email của bạn"
                 value={email}
+                required
                 onChange={(e) => setEmail(e.target.value)}
                 className="input-email-icon w-full pl-10 pr-4 py-3 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-400"
                 disabled={isSubmitting}
