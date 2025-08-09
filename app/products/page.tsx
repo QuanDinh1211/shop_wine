@@ -191,7 +191,7 @@ function ProductsContent({ initialWines }: { initialWines: Wine[] }) {
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+            <div className="sticky top-16 z-10 lg:static grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
               <div className="flex items-center gap-4 min-w-0">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -362,7 +362,7 @@ function LoadingSkeleton() {
             </div>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm animate-pulse">
+            <div className="sticky top-16 z-10 lg:static flex items-center justify-between mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm animate-pulse">
               <div className="flex items-center space-x-4">
                 <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded"></div>
                 <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
