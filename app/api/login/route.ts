@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 
     const connection = await mysql.createConnection(config);
     const [rows]: [UserRow[], any] = await connection.execute(
-      "SELECT id, email, password, name, isAdmin FROM customers WHERE email = ?",
+      "SELECT id, email, password, name, isAdmin FROM Customers WHERE email = ?",
       [email]
     );
 

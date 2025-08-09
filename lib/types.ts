@@ -1,5 +1,5 @@
 export interface Wine {
-id: string;
+  id: string;
   name: string;
   type: string; // Lấy từ WineTypes.name
   country: string; // Lấy từ Countries.name
@@ -17,8 +17,8 @@ id: string;
   volume: number | null;
   winery: string | null;
   servingTemp: string | null;
-  grapes: string[]; // Lấy từ WineGrapes + Grapes
-  pairings: string[]; // Lấy từ WinePairings + Pairings
+  grapes: string[]; // Lấy từ WineGrapes + Grapes.name
+  pairings: string[]; // Lấy từ WinePairings + Pairings.name
 }
 
 export interface CartItem {
@@ -40,15 +40,15 @@ export interface Order {
   userId: string;
   items: CartItem[];
   total: number;
-  status: 'pending' | 'confirmed' | 'shipping' | 'delivered' | 'cancelled';
+  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
   createdAt: string;
   shippingAddress: {
     name: string;
     phone: string;
     address: string;
-    city: string;
+    email: string;
   };
-  paymentMethod: 'cod' | 'bank_transfer';
+  paymentMethod: "cod" | "bank" | "card";
 }
 
 export interface FilterOptions {
@@ -57,4 +57,12 @@ export interface FilterOptions {
   priceRange: [number, number];
   year: [number, number];
   rating: number;
+}
+
+export interface DashboardStats {
+  totalWines: number;
+  totalCustomers: number;
+  totalOrders: number;
+  totalRevenue: number;
+  recentOrders: Order[];
 }

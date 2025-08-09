@@ -14,15 +14,30 @@ import {
   Star,
   RefreshCw,
   Mail,
+  Clock,
 } from "lucide-react";
 import { Wine } from "@/lib/types";
 import { toast } from "sonner";
 
 export default function HomePage() {
   const [featuredWines, setFeaturedWines] = useState<Wine[]>([]);
+  const [flashSaleWines, setFlashSaleWines] = useState<Wine[]>([]);
+  const [wineTypes, setWineTypes] = useState<{ type: string; wines: Wine[] }[]>(
+    []
+  );
   const [loading, setLoading] = useState<boolean>(true);
+  const [flashSaleLoading, setFlashSaleLoading] = useState<boolean>(true);
+  const [wineTypesLoading, setWineTypesLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [flashSaleError, setFlashSaleError] = useState<string | null>(null);
+  const [wineTypesError, setWineTypesError] = useState<string | null>(null);
+  const [timeLeft, setTimeLeft] = useState({
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
 
+  // Lấy danh sách sản phẩm nổi bật
   const fetchFeaturedWines = async () => {
     setLoading(true);
     setError(null);
@@ -40,8 +55,78 @@ export default function HomePage() {
     }
   };
 
+  // Lấy danh sách sản phẩm FLASH SALE
+  const fetchFlashSaleWines = async () => {
+    setFlashSaleLoading(true);
+    setFlashSaleError(null);
+    try {
+      const res = await fetch("/api/wines/flash-sale", { cache: "no-store" });
+      if (!res.ok) {
+        throw new Error("Không thể lấy danh sách sản phẩm FLASH SALE");
+      }
+      const data: Wine[] = await res.json();
+      setFlashSaleWines(data);
+      setFlashSaleLoading(false);
+    } catch (err: any) {
+      setFlashSaleError(err.message);
+      setFlashSaleLoading(false);
+    }
+  };
+
+  // Lấy danh sách sản phẩm theo loại rượu
+  const fetchWineTypes = async () => {
+    setWineTypesLoading(true);
+    setWineTypesError(null);
+    try {
+      const types = ["red", "white", "rose", "sparkling"];
+      const wineTypesData = await Promise.all(
+        types.map(async (type) => {
+          const res = await fetch(`/api/wines?type=${type}&limit=4`, {
+            cache: "no-store",
+          });
+          if (!res.ok) {
+            throw new Error(`Không thể lấy danh sách sản phẩm loại ${type}`);
+          }
+          const { wines }: { wines: Wine[] } = await res.json();
+
+          return { type, wines };
+        })
+      );
+      setWineTypes(wineTypesData);
+      setWineTypesLoading(false);
+    } catch (err: any) {
+      setWineTypesError(err.message);
+      setWineTypesLoading(false);
+    }
+  };
+
+  // Đồng hồ đếm ngược cho FLASH SALE
+  useEffect(() => {
+    const endTime = new Date();
+    endTime.setHours(endTime.getHours() + 24);
+
+    const updateTimer = () => {
+      const now = new Date();
+      const diff = endTime.getTime() - now.getTime();
+      if (diff <= 0) {
+        setTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      setTimeLeft({ hours, minutes, seconds });
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     fetchFeaturedWines();
+    fetchFlashSaleWines();
+    fetchWineTypes();
   }, []);
 
   const [email, setEmail] = useState("");
@@ -78,6 +163,21 @@ export default function HomePage() {
       toast.error(error.message);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const getTypeName = (type: string) => {
+    switch (type) {
+      case "red":
+        return "Rượu Vang Đỏ";
+      case "white":
+        return "Rượu Vang Trắng";
+      case "rose":
+        return "Rượu Vang Hồng";
+      case "sparkling":
+        return "Rượu Vang Sủi";
+      default:
+        return type;
     }
   };
 
@@ -143,7 +243,7 @@ export default function HomePage() {
             <div className="relative">
               <div className="relative w-full h-96 lg:h-[500px] rounded-2xl overflow-hidden shadow-2xl">
                 <Image
-                  src="https://images.pexels.com/photos/1407244/pexels-photo-1407244.jpeg"
+                  src="https://images.pexels.com/photos/2664149/pexels-photo-2664149.jpeg"
                   alt="Premium wine collection"
                   fill
                   className="object-cover"
@@ -183,9 +283,9 @@ export default function HomePage() {
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-12">
               {/* Skeleton Loader */}
-              {[...Array(3)].map((_, index) => (
+              {[...Array(4)].map((_, index) => (
                 <div
                   key={index}
                   className="border rounded-lg p-4 shadow-sm bg-white dark:bg-gray-800 animate-pulse"
@@ -215,7 +315,7 @@ export default function HomePage() {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-12">
               {featuredWines.map((wine) => (
                 <ProductCard key={wine.id} wine={wine} />
               ))}
@@ -303,6 +403,160 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* FLASH SALE Section */}
+      <section className="py-16 lg:py-24 bg-red-50 dark:bg-red-900/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              FLASH SALE
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              Cơ hội sở hữu những chai rượu vang cao cấp với giá ưu đãi đặc
+              biệt! Nhanh tay trước khi hết thời gian!
+            </p>
+            <div className="flex justify-center items-center mt-4">
+              <Clock className="h-6 w-6 text-red-600 mr-2" />
+              <span className="text-xl font-semibold text-red-600 dark:text-red-400">
+                {timeLeft.hours.toString().padStart(2, "0")}:
+                {timeLeft.minutes.toString().padStart(2, "0")}:
+                {timeLeft.seconds.toString().padStart(2, "0")}
+              </span>
+            </div>
+          </div>
+
+          {flashSaleLoading ? (
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-12">
+              {[...Array(4)].map((_, index) => (
+                <div
+                  key={index}
+                  className="border rounded-lg p-4 shadow-sm bg-white dark:bg-gray-800 animate-pulse"
+                >
+                  <div className="w-full h-64 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                  <div className="mt-4 h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                  <div className="mt-2 h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                  <div className="mt-2 h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+                  <div className="mt-4 h-10 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                </div>
+              ))}
+            </div>
+          ) : flashSaleError ? (
+            <div className="flex flex-col items-center justify-center h-64 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-4">
+              <div className="text-red-600 text-2xl font-semibold mb-2">
+                Ôi không, có lỗi xảy ra!
+              </div>
+              <p className="text-gray-600 dark:text-gray-400 text-center mb-4">
+                {flashSaleError}
+              </p>
+              <Button
+                onClick={fetchFlashSaleWines}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                <RefreshCw className="mr-2 h-5 w-5" />
+                Thử lại
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-12">
+              {flashSaleWines.map((wine) => (
+                <ProductCard key={wine.id} wine={wine} />
+              ))}
+            </div>
+          )}
+
+          <div className="text-center">
+            <Link href="/products?flashSale=true">
+              <Button
+                size="lg"
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                Xem tất cả FLASH SALE
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Products by Wine Type Section */}
+      <section className="py-16 lg:py-24 bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              Sản phẩm theo loại rượu
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              Khám phá bộ sưu tập rượu vang theo từng loại, từ đỏ đậm đà đến sủi
+              tăm tinh tế
+            </p>
+          </div>
+
+          {wineTypesLoading ? (
+            <div className="space-y-12">
+              {[...Array(4)].map((_, index) => (
+                <div key={index}>
+                  <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
+                  <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-12">
+                    {[...Array(4)].map((_, subIndex) => (
+                      <div
+                        key={subIndex}
+                        className="border rounded-lg p-4 shadow-sm bg-white dark:bg-gray-800 animate-pulse"
+                      >
+                        <div className="w-full h-64 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                        <div className="mt-4 h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                        <div className="mt-2 h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                        <div className="mt-2 h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+                        <div className="mt-4 h-10 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : wineTypesError ? (
+            <div className="flex flex-col items-center justify-center h-64 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-4">
+              <div className="text-red-600 text-2xl font-semibold mb-2">
+                Ôi không, có lỗi xảy ra!
+              </div>
+              <p className="text-gray-600 dark:text-gray-400 text-center mb-4">
+                {wineTypesError}
+              </p>
+              <Button
+                onClick={fetchWineTypes}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                <RefreshCw className="mr-2 h-5 w-5" />
+                Thử lại
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-12">
+              {wineTypes.map(({ type, wines }) => (
+                <div key={type}>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                      {getTypeName(type)}
+                    </h3>
+                    <Link href={`/products?type=${type}`}>
+                      <Button
+                        variant="link"
+                        className="text-red-600 dark:text-red-400 hover:underline"
+                      >
+                        Xem thêm <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </Link>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-12">
+                    {wines.map((wine) => (
+                      <ProductCard key={wine.id} wine={wine} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Newsletter Section */}
       <section className="bg-red-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -323,8 +577,9 @@ export default function HomePage() {
                 type="email"
                 placeholder="Nhập email của bạn"
                 value={email}
+                required
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-400"
+                className="input-email-icon w-full pl-10 pr-4 py-3 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-400"
                 disabled={isSubmitting}
               />
             </div>

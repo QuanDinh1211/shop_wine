@@ -4,14 +4,14 @@ export default async function ProductsServer() {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_BASE_URL}/api/wines/all`,
-      { cache: "no-store" }
+      { cache: "force-cache", next: { revalidate: 3600 } }
     );
     if (!res.ok) {
-      return { wines: [] };
+      return { wines: [], error: true };
     }
     const data: Wine[] = await res.json();
-    return { wines: data };
+    return { wines: data, error: null };
   } catch (err: any) {
-    return { wines: [] };
+    return { wines: [], error: true };
   }
 }

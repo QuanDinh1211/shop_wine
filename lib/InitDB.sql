@@ -68,12 +68,23 @@ CREATE TABLE WinePairings (
     FOREIGN KEY (pairing_id) REFERENCES Pairings(pairing_id)
 );
 
+-- Tạo bảng PasswordResetTokens
+CREATE TABLE PasswordResetTokens (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    customer_id VARCHAR(50) NOT NULL,
+    token VARCHAR(255) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES Customers(id) ON DELETE CASCADE
+);
+
 -- Tạo bảng Customers (đã sửa từ yêu cầu trước)
 CREATE TABLE Customers (
     id VARCHAR(50) PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     name VARCHAR(100) NOT NULL,
+    phone VARCHAR(20) NULL,
     isAdmin BOOLEAN DEFAULT FALSE
 );
 
@@ -177,10 +188,3 @@ VALUES
     ('5', 11), ('5', 12), ('5', 13), -- Dom Pérignon: Caviar, Hàu, Dessert
     ('6', 14), ('6', 15), ('6', 16); -- Rioja: Thịt cừu, Jamón, Phô mai Manchego
 
--- Chèn dữ liệu mẫu cho Orders
-INSERT INTO Orders (customer_id, total_amount, status, shipping_address)
-VALUES ('2', 5100000, 'pending', '123 Đường Láng, Hà Nội');
-
--- Chèn dữ liệu mẫu cho OrderItems
-INSERT INTO OrderItems (order_id, wine_id, quantity, unit_price)
-VALUES (1, '1', 2, 2500000);

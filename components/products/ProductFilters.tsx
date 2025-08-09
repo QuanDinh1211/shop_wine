@@ -120,7 +120,7 @@ export default function ProductFilters({
         <Slider
           value={filters.priceRange}
           onValueChange={handlePriceRangeChange}
-          min={500000}
+          min={100000}
           max={10000000}
           step={100000}
           className="mb-2"
@@ -138,8 +138,8 @@ export default function ProductFilters({
         <Slider
           value={filters.year}
           onValueChange={handleYearRangeChange}
-          min={2010}
-          max={2024}
+          min={new Date().getFullYear() - 50}
+          max={new Date().getFullYear()}
           step={1}
           className="mb-2"
         />
