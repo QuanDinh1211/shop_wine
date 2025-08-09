@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   Package,
@@ -76,7 +76,13 @@ export default function OrderHistory() {
             throw new Error("Không thể lấy dữ liệu đơn hàng");
           }
           const data = await res.json();
-          setOrders(data);
+          setOrders(
+            data.sort(
+              (a: Order, b: Order) =>
+                new Date(b.order_date).getTime() -
+                new Date(a.order_date).getTime()
+            )
+          );
         } catch (error: any) {
           toast.error(`Lỗi khi tải lịch sử đơn hàng: ${error.message}`);
         } finally {
@@ -88,7 +94,7 @@ export default function OrderHistory() {
     }
   }, [user, token, router, loadUser]);
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = useCallback((status: string) => {
     switch (status) {
       case "pending":
         return "bg-yellow-100 text-yellow-800 border-yellow-200";
@@ -103,9 +109,9 @@ export default function OrderHistory() {
       default:
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
-  };
+  }, []);
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = useCallback((status: string) => {
     switch (status) {
       case "pending":
         return <Clock className="h-4 w-4" />;
@@ -120,9 +126,9 @@ export default function OrderHistory() {
       default:
         return <Package className="h-4 w-4" />;
     }
-  };
+  }, []);
 
-  const getStatusText = (status: string) => {
+  const getStatusText = useCallback((status: string) => {
     switch (status) {
       case "pending":
         return "Chờ xử lý";
@@ -137,9 +143,9 @@ export default function OrderHistory() {
       default:
         return status;
     }
-  };
+  }, []);
 
-  const getPaymentMethodText = (method: string) => {
+  const getPaymentMethodText = useCallback((method: string) => {
     switch (method) {
       case "cod":
         return "Thanh toán khi nhận hàng";
@@ -150,22 +156,81 @@ export default function OrderHistory() {
       default:
         return method;
     }
-  };
+  }, []);
 
-  const handleViewDetails = (order: Order) => {
+  const handleViewDetails = useCallback((order: Order) => {
     setSelectedOrder(order);
     setShowModal(true);
-  };
+  }, []);
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setShowModal(false);
     setSelectedOrder(null);
-  };
+  }, []);
+
+  useEffect(() => {
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeModal();
+      }
+    };
+    if (showModal) {
+      document.addEventListener("keydown", handleEsc);
+    }
+    return () => {
+      document.removeEventListener("keydown", handleEsc);
+    };
+  }, [showModal, closeModal]);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-900"></div>
+      <div className="min-h-screen py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-12">
+            <div className="h-8 w-48 bg-gray-200 rounded mb-4 animate-pulse"></div>
+            <div className="h-6 w-64 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 animate-pulse">
+            <div className="flex items-center space-x-4">
+              <div className="bg-gray-200 p-4 rounded-full h-16 w-16"></div>
+              <div>
+                <div className="h-6 w-48 bg-gray-200 rounded mb-2"></div>
+                <div className="h-4 w-32 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+          </div>
+          <div className="space-y-6">
+            {[...Array(3)].map((_, index) => (
+              <div
+                key={index}
+                className="bg-white rounded-2xl shadow-xl p-8 animate-pulse"
+              >
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
+                  <div className="flex items-center space-x-4 mb-4 lg:mb-0">
+                    <div className="bg-gray-200 p-3 rounded-lg h-12 w-12"></div>
+                    <div>
+                      <div className="h-6 w-32 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-4 w-24 bg-gray-200 rounded"></div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                    <div className="h-6 w-24 bg-gray-200 rounded"></div>
+                    <div className="h-8 w-32 bg-gray-200 rounded"></div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="bg-gray-50 rounded-lg p-4">
+                      <div className="h-4 w-20 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-6 w-16 bg-gray-200 rounded mb-1"></div>
+                      <div className="h-4 w-12 bg-gray-200 rounded"></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -322,7 +387,12 @@ export default function OrderHistory() {
 
         {/* Order Details Modal */}
         {showModal && selectedOrder && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]">
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) closeModal();
+            }}
+          >
             <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-8">
                 {/* Modal Header */}
@@ -429,16 +499,13 @@ export default function OrderHistory() {
                         key={item.wine_id}
                         className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg"
                       >
-                        <div className="bg-gradient-to-br from-red-100 to-red-200 rounded-lg w-16 h-16 flex items-center justify-center">
-                          {/* <Wine className="h-8 w-8 text-red-900" /> */}
-                          <div className="relative w-16 h-20 flex-shrink-0">
-                            <Image
-                              src={item.images[0]}
-                              alt={item.name}
-                              fill
-                              className="object-cover rounded"
-                            />
-                          </div>
+                        <div className="relative w-16 h-16 flex-shrink-0 overflow-hidden rounded-lg">
+                          <Image
+                            src={item.images[0]}
+                            alt={item.name}
+                            fill
+                            className="object-cover"
+                          />
                         </div>
                         <div className="flex-1">
                           <h4 className="font-semibold text-gray-900">
