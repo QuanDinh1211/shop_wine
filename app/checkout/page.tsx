@@ -100,6 +100,7 @@ export default function Checkout() {
       setOrderStatus("success");
       clearCart();
       toast.success("Đơn hàng đã được đặt thành công!");
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) {
       setOrderStatus("error");
       toast.error("Đã xảy ra lỗi khi đặt hàng. Vui lòng thử lại!");
