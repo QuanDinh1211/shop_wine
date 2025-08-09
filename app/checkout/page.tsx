@@ -268,7 +268,7 @@ export default function Checkout() {
                       </p>
                     </div>
                   </label>
-                  <label className="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-red-300 transition-colors">
+                  {/* <label className="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-red-300 transition-colors">
                     <input
                       type="radio"
                       name="paymentMethod"
@@ -285,7 +285,7 @@ export default function Checkout() {
                         Thanh toán an toàn bằng thẻ
                       </p>
                     </div>
-                  </label>
+                  </label> */}
                 </div>
                 {orderData.paymentMethod === "card" && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 p-6 bg-gray-50 rounded-lg">
