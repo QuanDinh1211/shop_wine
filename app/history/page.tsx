@@ -19,14 +19,19 @@ import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
 
 interface OrderItem {
-  wine_id: string;
+  product_id: string;
+  product_type: "wine" | "accessory";
   name: string;
   price: number;
   quantity: number;
   images: string[];
-  winery: string;
-  country: string;
-  year: string;
+  // Wine specific fields
+  winery?: string;
+  country?: string;
+  year?: string;
+  // Accessory specific fields
+  accessory_type?: string;
+  brand?: string;
 }
 
 interface Order {
@@ -329,7 +334,7 @@ export default function OrderHistory() {
                         (sum, item) => sum + item.quantity,
                         0
                       )}{" "}
-                      chai
+                      sản phẩm
                     </p>
                   </div>
 
@@ -500,7 +505,7 @@ export default function OrderHistory() {
                   <div className="space-y-3">
                     {selectedOrder.items.map((item) => (
                       <div
-                        key={item.wine_id}
+                        key={item.product_id}
                         className="flex  sm:flex-row sm:items-start gap-3 p-3 bg-gray-50 rounded-lg"
                       >
                         <div className="relative w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 overflow-hidden rounded-lg">
@@ -517,7 +522,21 @@ export default function OrderHistory() {
                               {item.name}
                             </h4>
                             <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-1">
-                              {item.winery} • {item.country} • {item.year}
+                              {item.product_type === "wine" &&
+                                item.winery &&
+                                item.country &&
+                                item.year && (
+                                  <>
+                                    {item.winery} • {item.country} • {item.year}
+                                  </>
+                                )}
+                              {item.product_type === "accessory" &&
+                                item.accessory_type &&
+                                item.brand && (
+                                  <>
+                                    {item.accessory_type} • {item.brand}
+                                  </>
+                                )}
                             </p>
                             <p className="text-xs text-gray-600 mt-1">
                               Số lượng: {item.quantity}

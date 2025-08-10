@@ -14,6 +14,7 @@ const SCROLL_THRESHOLD = 80;
 const NAVIGATION_ITEMS = [
   { href: "/", label: "Trang chủ" },
   { href: "/products", label: "Sản phẩm" },
+  { href: "/accessories", label: "Phụ kiện" },
   { href: "/about", label: "Giới thiệu" },
   { href: "/contact", label: "Liên hệ" },
   { href: "/history", label: "Lịch sử đặt hàng" },

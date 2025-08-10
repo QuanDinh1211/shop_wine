@@ -1,31 +1,32 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { notFound } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { useParams, notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { useCart } from "@/contexts/CartContext";
-import { Wine } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Star,
-  ShoppingCart,
-  ArrowLeft,
-  Heart,
-  Share2,
-  Truck,
-  Shield,
+import { Accessory } from "@/lib/types";
+import { useCart } from "@/contexts/CartContext";
+import { formatPrice } from "@/lib/utils";
+import { 
+  Loader2, 
+  ShoppingCart, 
+  Share2, 
+  ArrowLeft, 
   RefreshCw,
+  Truck,
+  Shield
 } from "lucide-react";
 import { toast } from "sonner";
-import ProductCard from "@/components/products/ProductCard";
+import { AccessoryCard } from "@/components/products/AccessoryCard";
 
-export default function ProductPage({ id }: { id: string }) {
-  const { addWine } = useCart();
-  const [wine, setWine] = useState<Wine | null>(null);
-  const [relatedWines, setRelatedWines] = useState<Wine[]>([]);
+export default function AccessoryDetailPage() {
+  const params = useParams();
+  const { addAccessory } = useCart();
+  const [accessory, setAccessory] = useState<Accessory | null>(null);
+  const [relatedAccessories, setRelatedAccessories] = useState<Accessory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -33,78 +34,49 @@ export default function ProductPage({ id }: { id: string }) {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   useEffect(() => {
-    async function fetchWine() {
+    async function fetchAccessory() {
+      if (!params.id) return;
+      
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`/api/wines/${id}`, {
-          cache: "no-store",
-        });
-        if (!res.ok) {
-          if (res.status === 404) {
+        const response = await fetch(`/api/accessories/${params.id}`);
+        const data = await response.json();
+
+        if (response.ok) {
+          setAccessory(data);
+          // Fetch related accessories
+          const relatedResponse = await fetch(`/api/accessories?limit=4&type=${data.accessoryType}`);
+          if (relatedResponse.ok) {
+            const relatedData = await relatedResponse.json();
+            setRelatedAccessories(relatedData.accessories.filter((a: Accessory) => a.id !== data.id));
+          }
+        } else {
+          if (response.status === 404) {
             notFound();
           }
-          throw new Error("Không thể lấy thông tin sản phẩm");
+          throw new Error("Không thể lấy thông tin phụ kiện");
         }
-        const data = await res.json();
-        setWine(data.wine);
-        setRelatedWines(data.relatedWines);
-        setLoading(false);
       } catch (err: any) {
         setError(err.message);
+      } finally {
         setLoading(false);
       }
     }
-    fetchWine();
-  }, [id]);
+
+    fetchAccessory();
+  }, [params.id]);
 
   const handleAddToCart = async () => {
-    if (!wine) return;
+    if (!accessory) return;
     setIsAddingToCart(true);
     try {
       for (let i = 0; i < quantity; i++) {
-        addWine(wine);
+        addAccessory(accessory);
       }
-      toast.success(`Đã thêm ${quantity} chai ${wine.name} vào giỏ hàng`);
+      toast.success(`Đã thêm ${quantity} ${accessory.name} vào giỏ hàng`);
     } finally {
       setIsAddingToCart(false);
-    }
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(price);
-  };
-
-  const getTypeColor = (type: string) => {
-    switch (type.toLowerCase()) {
-      case "red":
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
-      case "white":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
-      case "rose":
-        return "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200";
-      case "sparkling":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
-    }
-  };
-
-  const getTypeName = (type: string) => {
-    switch (type.toLowerCase()) {
-      case "red":
-        return "Rượu vang đỏ";
-      case "white":
-        return "Rượu vang trắng";
-      case "rose":
-        return "Rượu vang hồng";
-      case "sparkling":
-        return "Rượu sủi bọt";
-      default:
-        return type;
     }
   };
 
@@ -167,11 +139,11 @@ export default function ProductPage({ id }: { id: string }) {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Link
-            href="/products"
+            href="/accessories"
             className="inline-flex items-center text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 mb-8"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Quay lại danh sách sản phẩm
+            Quay lại danh sách phụ kiện
           </Link>
           <div className="flex flex-col items-center justify-center h-64 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
             <div className="text-red-600 text-2xl font-semibold mb-2">
@@ -193,7 +165,7 @@ export default function ProductPage({ id }: { id: string }) {
     );
   }
 
-  if (!wine) {
+  if (!accessory) {
     notFound();
   }
 
@@ -206,40 +178,40 @@ export default function ProductPage({ id }: { id: string }) {
           </Link>
           <span>/</span>
           <Link
-            href="/products"
+            href="/accessories"
             className="hover:text-red-600 dark:hover:text-red-400"
           >
-            Sản phẩm
+            Phụ kiện
           </Link>
           <span>/</span>
           <span className="text-gray-900 dark:text-white truncate">
-            {wine.name}
+            {accessory.name}
           </span>
         </div>
 
         <Link
-          href="/products"
+          href="/accessories"
           className="inline-flex items-center text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 mb-8"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Quay lại danh sách sản phẩm
+          Quay lại danh sách phụ kiện
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
           <div className="space-y-4">
             <div className="aspect-[3/4] relative overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
               <Image
-                src={wine.images[selectedImage] || "/placeholder-wine.jpg"}
-                alt={wine.name}
+                src={accessory.images[selectedImage] || "/placeholder-accessory.jpg"}
+                alt={accessory.name}
                 fill
                 className="object-cover"
                 priority
               />
             </div>
 
-            {wine.images.length > 1 && (
+            {accessory.images.length > 1 && (
               <div className="grid grid-cols-4 gap-2">
-                {wine.images.map((image, index) => (
+                {accessory.images.map((image, index) => (
                   <button
                     key={index}
                     onClick={() => setSelectedImage(index)}
@@ -251,7 +223,7 @@ export default function ProductPage({ id }: { id: string }) {
                   >
                     <Image
                       src={image}
-                      alt={`${wine.name} ${index + 1}`}
+                      alt={`${accessory.name} ${index + 1}`}
                       fill
                       className="object-cover"
                     />
@@ -263,101 +235,96 @@ export default function ProductPage({ id }: { id: string }) {
 
           <div className="space-y-6">
             <div>
-              <Badge variant="secondary" className={getTypeColor(wine.type)}>
-                {getTypeName(wine.type)}
+              <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                {accessory.accessoryType}
               </Badge>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white mt-2 mb-4">
-                {wine.name}
+                {accessory.name}
               </h1>
-              <div className="flex items-center space-x-4 mb-4">
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-5 w-5 ${
-                        i < Math.floor(wine.rating || 0)
-                          ? "text-yellow-400 fill-current"
-                          : "text-gray-300 dark:text-gray-600"
-                      }`}
-                    />
-                  ))}
-                  <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
-                    {wine?.rating ? wine.rating : "Chưa có đánh giá"} (
-                    {wine.reviews} đánh giá)
-                  </span>
-                </div>
-              </div>
+              {accessory.brand && (
+                <p className="text-lg text-gray-600 dark:text-gray-400 mb-4">
+                  Thương hiệu: <span className="font-semibold">{accessory.brand}</span>
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
               <div className="flex items-baseline space-x-4">
                 <span className="text-3xl font-bold text-red-600 dark:text-red-400">
-                  {formatPrice(wine.price)}
+                  {formatPrice(accessory.price)}
                 </span>
-                {wine.originalPrice && (
+                {accessory.originalPrice && accessory.originalPrice > accessory.price && (
                   <span className="text-lg text-gray-500 line-through">
-                    {formatPrice(wine.originalPrice)}
+                    {formatPrice(accessory.originalPrice)}
                   </span>
                 )}
               </div>
-              {wine.originalPrice && (
+              {accessory.originalPrice && accessory.originalPrice > accessory.price && (
                 <p className="text-sm text-green-600 dark:text-green-400">
-                  Tiết kiệm {formatPrice(wine.originalPrice - wine.price)}
+                  Tiết kiệm {formatPrice(accessory.originalPrice - accessory.price)}
                 </p>
               )}
             </div>
 
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-              {wine.description || "Không có mô tả chi tiết."}
+              {accessory.description || "Không có mô tả chi tiết."}
             </p>
 
             <div className="grid grid-cols-2 gap-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
               <div>
                 <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Nhà sản xuất:
+                  Loại phụ kiện:
                 </span>
                 <p className="font-semibold text-gray-900 dark:text-white">
-                  {wine.winery || "Không có thông tin"}
+                  {accessory.accessoryType}
                 </p>
               </div>
+              {accessory.brand && (
+                <div>
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Thương hiệu:
+                  </span>
+                  <p className="font-semibold text-gray-900 dark:text-white">
+                    {accessory.brand}
+                  </p>
+                </div>
+              )}
+              {accessory.material && (
+                <div>
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Chất liệu:
+                  </span>
+                  <p className="font-semibold text-gray-900 dark:text-white">
+                    {accessory.material}
+                  </p>
+                </div>
+              )}
+              {accessory.color && (
+                <div>
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Màu sắc:
+                  </span>
+                  <p className="font-semibold text-gray-900 dark:text-white">
+                    {accessory.color}
+                  </p>
+                </div>
+              )}
+              {accessory.size && (
+                <div>
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Kích thước:
+                  </span>
+                  <p className="font-semibold text-gray-900 dark:text-white">
+                    {accessory.size}
+                  </p>
+                </div>
+              )}
               <div>
                 <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Quốc gia:
+                  Tình trạng:
                 </span>
                 <p className="font-semibold text-gray-900 dark:text-white">
-                  {wine.country}
-                </p>
-              </div>
-              <div>
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Vùng:
-                </span>
-                <p className="font-semibold text-gray-900 dark:text-white">
-                  {wine.region || "Không có thông tin"}
-                </p>
-              </div>
-              <div>
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Năm:
-                </span>
-                <p className="font-semibold text-gray-900 dark:text-white">
-                  {wine.year || "Không có thông tin"}
-                </p>
-              </div>
-              <div>
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Độ cồn:
-                </span>
-                <p className="font-semibold text-gray-900 dark:text-white">
-                  {wine.alcohol ? `${wine.alcohol}%` : "Không có thông tin"}
-                </p>
-              </div>
-              <div>
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Dung tích:
-                </span>
-                <p className="font-semibold text-gray-900 dark:text-white">
-                  {wine.volume ? `${wine.volume}ml` : "Không có thông tin"}
+                  {accessory.inStock ? "Còn hàng" : "Hết hàng"}
                 </p>
               </div>
             </div>
@@ -387,7 +354,7 @@ export default function ProductPage({ id }: { id: string }) {
               <div className="flex space-x-4">
                 <Button
                   onClick={handleAddToCart}
-                  disabled={!wine.inStock || isAddingToCart}
+                  disabled={!accessory.inStock || isAddingToCart}
                   className="flex-1 bg-red-600 hover:bg-red-700 text-white"
                   size="lg"
                 >
@@ -417,9 +384,9 @@ export default function ProductPage({ id }: { id: string }) {
                 </Button>
               </div>
 
-              {!wine.inStock && (
+              {!accessory.inStock && (
                 <p className="text-red-600 dark:text-red-400 text-sm">
-                  Sản phẩm hiện tại hết hàng
+                  Phụ kiện hiện tại hết hàng
                 </p>
               )}
             </div>
@@ -448,32 +415,32 @@ export default function ProductPage({ id }: { id: string }) {
                   <div className="space-y-3">
                     <div>
                       <span className="font-medium text-gray-700 dark:text-gray-300">
-                        Giống nho:
+                        Loại phụ kiện:
                       </span>
                       <p className="text-gray-600 dark:text-gray-400">
-                        {wine.grapes.length > 0
-                          ? wine.grapes.join(", ")
-                          : "Không có thông tin"}
+                        {accessory.accessoryType}
                       </p>
                     </div>
-                    <div>
-                      <span className="font-medium text-gray-700 dark:text-gray-300">
-                        Nhiệt độ phục vụ:
-                      </span>
-                      <p className="text-gray-600 dark:text-gray-400">
-                        {wine.servingTemp || "Không có thông tin"}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-700 dark:text-gray-300">
-                        Kết hợp với:
-                      </span>
-                      <p className="text-gray-600 dark:text-gray-400">
-                        {wine.pairings.length > 0
-                          ? wine.pairings.join(", ")
-                          : "Không có thông tin"}
-                      </p>
-                    </div>
+                    {accessory.brand && (
+                      <div>
+                        <span className="font-medium text-gray-700 dark:text-gray-300">
+                          Thương hiệu:
+                        </span>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          {accessory.brand}
+                        </p>
+                      </div>
+                    )}
+                    {accessory.material && (
+                      <div>
+                        <span className="font-medium text-gray-700 dark:text-gray-300">
+                          Chất liệu:
+                        </span>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          {accessory.material}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -482,7 +449,7 @@ export default function ProductPage({ id }: { id: string }) {
                     Mô tả chi tiết
                   </h3>
                   <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                    {wine.description || "Không có mô tả chi tiết."}
+                    {accessory.description || "Không có mô tả chi tiết."}
                   </p>
                 </div>
               </div>
@@ -490,14 +457,14 @@ export default function ProductPage({ id }: { id: string }) {
           </Card>
         </div>
 
-        {relatedWines.length > 0 && (
+        {relatedAccessories.length > 0 && (
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">
-              Sản phẩm liên quan
+              Phụ kiện liên quan
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2">
-              {relatedWines.map((relatedWine) => (
-                <ProductCard key={relatedWine.id} wine={relatedWine} />
+              {relatedAccessories.map((relatedAccessory) => (
+                <AccessoryCard key={relatedAccessory.id} accessory={relatedAccessory} />
               ))}
             </div>
           </div>

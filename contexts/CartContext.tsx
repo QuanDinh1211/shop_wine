@@ -7,7 +7,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import { CartItem, Wine } from "@/lib/types";
+import { CartItem, Wine, Accessory } from "@/lib/types";
 
 interface CartState {
   items: CartItem[];
@@ -16,7 +16,8 @@ interface CartState {
 }
 
 type CartAction =
-  | { type: "ADD_ITEM"; payload: Wine }
+  | { type: "ADD_WINE"; payload: Wine }
+  | { type: "ADD_ACCESSORY"; payload: Accessory }
   | { type: "REMOVE_ITEM"; payload: string }
   | { type: "UPDATE_QUANTITY"; payload: { id: string; quantity: number } }
   | { type: "CLEAR_CART" }
@@ -24,7 +25,8 @@ type CartAction =
 
 const CartContext = createContext<{
   state: CartState;
-  addItem: (wine: Wine) => void;
+  addWine: (wine: Wine) => void;
+  addAccessory: (accessory: Accessory) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
@@ -32,39 +34,75 @@ const CartContext = createContext<{
 
 const cartReducer = (state: CartState, action: CartAction): CartState => {
   switch (action.type) {
-    case "ADD_ITEM": {
+    case "ADD_WINE": {
       const existingItem = state.items.find(
-        (item) => item.wine.id === action.payload.id
+        (item) =>
+          item.wine?.id === action.payload.id && item.productType === "wine"
       );
       let newItems: CartItem[];
 
       if (existingItem) {
         newItems = state.items.map((item) =>
-          item.wine.id === action.payload.id
+          item.wine?.id === action.payload.id && item.productType === "wine"
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       } else {
-        newItems = [...state.items, { wine: action.payload, quantity: 1 }];
+        newItems = [
+          ...state.items,
+          { wine: action.payload, quantity: 1, productType: "wine" },
+        ];
       }
 
-      const total = newItems.reduce(
-        (sum, item) => sum + item.wine.price * item.quantity,
-        0
+      const total = newItems.reduce((sum, item) => {
+        const price = item.wine?.price || item.accessory?.price || 0;
+        return sum + price * item.quantity;
+      }, 0);
+      const itemCount = newItems.reduce((sum, item) => sum + item.quantity, 0);
+
+      return { items: newItems, total, itemCount };
+    }
+
+    case "ADD_ACCESSORY": {
+      const existingItem = state.items.find(
+        (item) =>
+          item.accessory?.id === action.payload.id &&
+          item.productType === "accessory"
       );
+      let newItems: CartItem[];
+
+      if (existingItem) {
+        newItems = state.items.map((item) =>
+          item.accessory?.id === action.payload.id &&
+          item.productType === "accessory"
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      } else {
+        newItems = [
+          ...state.items,
+          { accessory: action.payload, quantity: 1, productType: "accessory" },
+        ];
+      }
+
+      const total = newItems.reduce((sum, item) => {
+        const price = item.wine?.price || item.accessory?.price || 0;
+        return sum + price * item.quantity;
+      }, 0);
       const itemCount = newItems.reduce((sum, item) => sum + item.quantity, 0);
 
       return { items: newItems, total, itemCount };
     }
 
     case "REMOVE_ITEM": {
-      const newItems = state.items.filter(
-        (item) => item.wine.id !== action.payload
-      );
-      const total = newItems.reduce(
-        (sum, item) => sum + item.wine.price * item.quantity,
-        0
-      );
+      const newItems = state.items.filter((item) => {
+        const itemId = item.wine?.id || item.accessory?.id;
+        return itemId !== action.payload;
+      });
+      const total = newItems.reduce((sum, item) => {
+        const price = item.wine?.price || item.accessory?.price || 0;
+        return sum + price * item.quantity;
+      }, 0);
       const itemCount = newItems.reduce((sum, item) => sum + item.quantity, 0);
 
       return { items: newItems, total, itemCount };
@@ -72,17 +110,18 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
 
     case "UPDATE_QUANTITY": {
       const newItems = state.items
-        .map((item) =>
-          item.wine.id === action.payload.id
+        .map((item) => {
+          const itemId = item.wine?.id || item.accessory?.id;
+          return itemId === action.payload.id
             ? { ...item, quantity: Math.max(0, action.payload.quantity) }
-            : item
-        )
+            : item;
+        })
         .filter((item) => item.quantity > 0);
 
-      const total = newItems.reduce(
-        (sum, item) => sum + item.wine.price * item.quantity,
-        0
-      );
+      const total = newItems.reduce((sum, item) => {
+        const price = item.wine?.price || item.accessory?.price || 0;
+        return sum + price * item.quantity;
+      }, 0);
       const itemCount = newItems.reduce((sum, item) => sum + item.quantity, 0);
 
       return { items: newItems, total, itemCount };
@@ -92,10 +131,10 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
       return { items: [], total: 0, itemCount: 0 };
 
     case "LOAD_CART": {
-      const total = action.payload.reduce(
-        (sum, item) => sum + item.wine.price * item.quantity,
-        0
-      );
+      const total = action.payload.reduce((sum, item) => {
+        const price = item.wine?.price || item.accessory?.price || 0;
+        return sum + price * item.quantity;
+      }, 0);
       const itemCount = action.payload.reduce(
         (sum, item) => sum + item.quantity,
         0
@@ -132,8 +171,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [state.items]);
 
-  const addItem = (wine: Wine) => {
-    dispatch({ type: "ADD_ITEM", payload: wine });
+  const addWine = (wine: Wine) => {
+    dispatch({ type: "ADD_WINE", payload: wine });
+  };
+
+  const addAccessory = (accessory: Accessory) => {
+    dispatch({ type: "ADD_ACCESSORY", payload: accessory });
   };
 
   const removeItem = (id: string) => {
@@ -150,7 +193,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
 
   return (
     <CartContext.Provider
-      value={{ state, addItem, removeItem, updateQuantity, clearCart }}
+      value={{
+        state,
+        addWine,
+        addAccessory,
+        removeItem,
+        updateQuantity,
+        clearCart,
+      }}
     >
       {children}
     </CartContext.Provider>

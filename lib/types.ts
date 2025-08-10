@@ -22,8 +22,10 @@ export interface Wine {
 }
 
 export interface CartItem {
-  wine: Wine;
+  wine?: Wine;
+  accessory?: Accessory;
   quantity: number;
+  productType: 'wine' | 'accessory';
 }
 
 export interface User {
@@ -65,4 +67,26 @@ export interface DashboardStats {
   totalOrders: number;
   totalRevenue: number;
   recentOrders: Order[];
+}
+
+export interface AccessoryType {
+  accessoryTypeId: number;
+  name: string;
+}
+
+export interface Accessory {
+  id: string;
+  name: string;
+  accessoryTypeId: number;
+  accessoryType: string;
+  price: number;
+  originalPrice: number | null;
+  description: string | null;
+  images: string[];
+  inStock: boolean;
+  featured: boolean;
+  brand: string | null;
+  material: string | null;
+  color: string | null;
+  size: string | null;
 }

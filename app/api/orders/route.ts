@@ -20,10 +20,17 @@ interface Order extends RowDataPacket {
 }
 
 interface OrderItem extends RowDataPacket {
-  wine_id: string;
+  product_id: string;
+  product_type: 'wine' | 'accessory';
   name: string;
   quantity: number;
   unit_price: number;
+  images: string;
+  winery?: string;
+  country?: string;
+  year?: number;
+  accessory_type?: string;
+  brand?: string;
 }
 
 export async function POST(request: Request) {
@@ -112,14 +119,17 @@ export async function POST(request: Request) {
 
       // Thêm các mục đơn hàng
       for (const item of items) {
-        if (!item.wine?.id || !item.quantity || !item.wine?.price) {
+        const product = item.wine || item.accessory;
+        const productType = item.productType;
+
+        if (!product?.id || !item.quantity || !product?.price) {
           throw new Error("Dữ liệu mục đơn hàng không hợp lệ");
         }
 
         await connection.execute(
-          `INSERT INTO OrderItems (order_id, wine_id, quantity, unit_price)
-           VALUES (?, ?, ?, ?)`,
-          [order_id, item.wine.id, item.quantity, item.wine.price]
+          `INSERT INTO OrderItems (order_id, product_id, product_type, quantity, unit_price)
+           VALUES (?, ?, ?, ?, ?)`,
+          [order_id, product.id, productType, item.quantity, product.price]
         );
       }
 
@@ -179,10 +189,29 @@ export async function GET(request: Request) {
     const result = await Promise.all(
       orders.map(async (order) => {
         const [items] = await connection.execute<OrderItem[]>(
-          `SELECT oi.wine_id, oi.quantity, oi.unit_price, w.name, w.images, w.winery, c.name AS country, w.year
+          `SELECT 
+            oi.product_id, 
+            oi.product_type,
+            oi.quantity, 
+            oi.unit_price,
+            CASE 
+              WHEN oi.product_type = 'wine' THEN w.name
+              WHEN oi.product_type = 'accessory' THEN a.name
+            END as name,
+            CASE 
+              WHEN oi.product_type = 'wine' THEN w.images
+              WHEN oi.product_type = 'accessory' THEN a.images
+            END as images,
+            w.winery,
+            c.name AS country,
+            w.year,
+            at.name AS accessory_type,
+            a.brand
            FROM OrderItems oi 
-           JOIN Wines w ON oi.wine_id = w.id 
-           JOIN Countries c ON w.country_id = c.country_id
+           LEFT JOIN Wines w ON oi.product_id = w.id AND oi.product_type = 'wine'
+           LEFT JOIN Countries c ON w.country_id = c.country_id
+           LEFT JOIN Accessories a ON oi.product_id = a.id AND oi.product_type = 'accessory'
+           LEFT JOIN AccessoryTypes at ON a.accessory_type_id = at.accessory_type_id
            WHERE oi.order_id = ?`,
           [order.order_id]
         );
@@ -191,14 +220,19 @@ export async function GET(request: Request) {
           ...order,
           total_amount: Number(order.total_amount),
           items: items.map((item) => ({
-            wine_id: item.wine_id,
+            product_id: item.product_id,
+            product_type: item.product_type,
             name: item.name,
             price: Number(item.unit_price),
             quantity: item.quantity,
             images: item.images ? parseImages(item.images) : [],
+            // Wine specific fields
             winery: item.winery,
             country: item.country,
             year: item.year,
+            // Accessory specific fields
+            accessory_type: item.accessory_type,
+            brand: item.brand,
           })),
         };
       })

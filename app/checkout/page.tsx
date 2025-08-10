@@ -367,39 +367,61 @@ export default function Checkout() {
                   {cartItems.length === 0 ? (
                     <p className="text-gray-600">Giỏ hàng trống</p>
                   ) : (
-                    cartItems.map((item) => (
-                      <div
-                        key={item.wine.id}
-                        className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg"
-                      >
-                        <div className="bg-gradient-to-br from-red-100 to-red-200 rounded-lg w-16 h-16 flex items-center justify-center">
-                          <div className="relative w-16 h-20 flex-shrink-0">
-                            <Image
-                              src={item.wine.images[0]}
-                              alt={item.wine.name}
-                              fill
-                              className="object-cover rounded"
-                            />
+                    cartItems.map((item) => {
+                      const product = item.wine || item.accessory;
+                      const productType = item.productType;
+
+                      if (!product) return null;
+
+                      return (
+                        <div
+                          key={product.id}
+                          className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg"
+                        >
+                          <div className="bg-gradient-to-br from-red-100 to-red-200 rounded-lg w-16 h-16 flex items-center justify-center">
+                            <div className="relative w-16 h-20 flex-shrink-0">
+                              <Image
+                                src={product.images[0]}
+                                alt={product.name}
+                                fill
+                                className="object-cover rounded"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900 text-sm">
+                              {product.name}
+                            </h3>
+                            <p className="text-gray-600 text-sm">
+                              {productType === "wine" && item.wine && (
+                                <>
+                                  {item.wine.winery} • {item.wine.country} •{" "}
+                                  {item.wine.year}
+                                </>
+                              )}
+                              {productType === "accessory" &&
+                                item.accessory && (
+                                  <>
+                                    {item.accessory.accessoryType} •{" "}
+                                    {item.accessory.brand}
+                                  </>
+                                )}
+                            </p>
+                            <p className="text-gray-600 text-sm">
+                              Số lượng: {item.quantity}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-gray-900">
+                              {(product.price * item.quantity).toLocaleString(
+                                "vi-VN"
+                              )}
+                              ₫
+                            </p>
                           </div>
                         </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900 text-sm">
-                            {item.wine.name}
-                          </h3>
-                          <p className="text-gray-600 text-sm">
-                            Số lượng: {item.quantity}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-gray-900">
-                            {(item.wine.price * item.quantity).toLocaleString(
-                              "vi-VN"
-                            )}
-                            ₫
-                          </p>
-                        </div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
                 <div className="border-t pt-6 space-y-3">

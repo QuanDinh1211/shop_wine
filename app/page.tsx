@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import ProductCard from "@/components/products/ProductCard";
+import { AccessoryCard } from "@/components/products/AccessoryCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -16,19 +17,24 @@ import {
   Mail,
   Clock,
 } from "lucide-react";
-import { Wine } from "@/lib/types";
+import { Wine, Accessory } from "@/lib/types";
 import { toast } from "sonner";
 
 export default function HomePage() {
   const [featuredWines, setFeaturedWines] = useState<Wine[]>([]);
+  const [featuredAccessories, setFeaturedAccessories] = useState<Accessory[]>(
+    []
+  );
   const [flashSaleWines, setFlashSaleWines] = useState<Wine[]>([]);
   const [wineTypes, setWineTypes] = useState<{ type: string; wines: Wine[] }[]>(
     []
   );
   const [loading, setLoading] = useState<boolean>(true);
+  const [accessoriesLoading, setAccessoriesLoading] = useState<boolean>(true);
   const [flashSaleLoading, setFlashSaleLoading] = useState<boolean>(true);
   const [wineTypesLoading, setWineTypesLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [accessoriesError, setAccessoriesError] = useState<string | null>(null);
   const [flashSaleError, setFlashSaleError] = useState<string | null>(null);
   const [wineTypesError, setWineTypesError] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState({
@@ -52,6 +58,26 @@ export default function HomePage() {
     } catch (err: any) {
       setError(err.message);
       setLoading(false);
+    }
+  };
+
+  // Lấy danh sách phụ kiện nổi bật
+  const fetchFeaturedAccessories = async () => {
+    setAccessoriesLoading(true);
+    setAccessoriesError(null);
+    try {
+      const res = await fetch("/api/accessories/featured", {
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        throw new Error("Không thể lấy danh sách phụ kiện nổi bật");
+      }
+      const data: Accessory[] = await res.json();
+      setFeaturedAccessories(data);
+      setAccessoriesLoading(false);
+    } catch (err: any) {
+      setAccessoriesError(err.message);
+      setAccessoriesLoading(false);
     }
   };
 
@@ -125,6 +151,7 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchFeaturedWines();
+    fetchFeaturedAccessories();
     fetchFlashSaleWines();
     fetchWineTypes();
   }, []);
@@ -329,6 +356,73 @@ export default function HomePage() {
                 className="bg-red-600 hover:bg-red-700 text-white"
               >
                 Xem tất cả sản phẩm
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Accessories */}
+      <section className="py-16 lg:py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              Phụ kiện nổi bật
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              Bộ sưu tập phụ kiện cao cấp để hoàn thiện trải nghiệm thưởng rượu
+              của bạn
+            </p>
+          </div>
+
+          {accessoriesLoading ? (
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-12">
+              {/* Skeleton Loader */}
+              {[...Array(4)].map((_, index) => (
+                <div
+                  key={index}
+                  className="border rounded-lg p-4 shadow-sm bg-white dark:bg-gray-800 animate-pulse"
+                >
+                  <div className="w-full h-64 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                  <div className="mt-4 h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                  <div className="mt-2 h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                  <div className="mt-2 h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+                  <div className="mt-4 h-10 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                </div>
+              ))}
+            </div>
+          ) : accessoriesError ? (
+            <div className="flex flex-col items-center justify-center h-64 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-4">
+              <div className="text-red-600 text-2xl font-semibold mb-2">
+                Ôi không, có lỗi xảy ra!
+              </div>
+              <p className="text-gray-600 dark:text-gray-400 text-center mb-4">
+                {accessoriesError}
+              </p>
+              <Button
+                onClick={fetchFeaturedAccessories}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                <RefreshCw className="mr-2 h-5 w-5" />
+                Thử lại
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-12">
+              {featuredAccessories.map((accessory) => (
+                <AccessoryCard key={accessory.id} accessory={accessory} />
+              ))}
+            </div>
+          )}
+
+          <div className="text-center">
+            <Link href="/accessories">
+              <Button
+                size="lg"
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                Xem tất cả phụ kiện
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
