@@ -109,10 +109,10 @@ export const AccessoryFilters: React.FC<AccessoryFiltersProps> = ({
   };
 
   return (
-    <Card className="w-full">
+    <Card className="rounded-lg border bg-card text-card-foreground shadow-sm w-full">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Bộ lọc</CardTitle>
+          <CardTitle className="text-base">Bộ lọc</CardTitle>
           {hasActiveFilters() && (
             <Button
               variant="ghost"
@@ -128,19 +128,6 @@ export const AccessoryFilters: React.FC<AccessoryFiltersProps> = ({
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {/* Tìm kiếm theo tên */}
-        <div className="space-y-2">
-          <Label htmlFor="name">Tìm kiếm</Label>
-          <Input
-            id="name"
-            placeholder="Nhập tên phụ kiện..."
-            value={localFilters.name}
-            onChange={(e) => handleFilterChange("name", e.target.value)}
-          />
-        </div>
-
-        <Separator />
-
         {/* Loại phụ kiện */}
         <div className="space-y-3">
           <Label>Loại phụ kiện</Label>
@@ -291,6 +278,10 @@ export const AccessoryFilters: React.FC<AccessoryFiltersProps> = ({
             Chỉ hiển thị còn hàng
           </Label>
         </div>
+
+        <Button variant="outline" onClick={clearAllFilters} className="w-full">
+          Xóa bộ lọc
+        </Button>
       </CardContent>
     </Card>
   );

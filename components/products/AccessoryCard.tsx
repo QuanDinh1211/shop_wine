@@ -86,11 +86,7 @@ export const AccessoryCard: React.FC<AccessoryCardProps> = ({
                   Sale
                 </Badge>
               )}
-            {accessory.featured && (
-              <Badge className="absolute top-2 right-2 bg-yellow-500 text-white">
-                Nổi bật
-              </Badge>
-            )}
+
             {!accessory.inStock && (
               <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                 <Badge variant="secondary" className="bg-gray-600 text-white">
@@ -111,7 +107,7 @@ export const AccessoryCard: React.FC<AccessoryCardProps> = ({
             {accessory.accessoryType}
           </Badge>
           {accessory.brand && (
-            <span className="text-sm text-gray-600 dark:text-gray-300">
+            <span className="hidden sm:inline text-sm text-gray-600 dark:text-gray-300">
               {accessory.brand}
             </span>
           )}

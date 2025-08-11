@@ -66,7 +66,7 @@ export default function ProductFilters({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="rounded-lg border bg-card text-card-foreground shadow-sm w-full p-4 space-y-6">
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
           Loại rượu
