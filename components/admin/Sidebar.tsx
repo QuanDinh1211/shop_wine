@@ -21,6 +21,7 @@ import {
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Wines", href: "/admin/wines", icon: Wine },
+  { name: "Accessories", href: "/admin/accessories", icon: Package },
   { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { name: "Customers", href: "/admin/customers", icon: Users },
   {
@@ -28,7 +29,12 @@ const navigation = [
     icon: Package,
     children: [
       { name: "Countries", href: "/admin/countries", icon: Globe },
-      // { name: 'Wine Types', href: '/admin/wine-types', icon: Wine },
+      { name: "Wine Types", href: "/admin/wine-types", icon: Wine },
+      {
+        name: "Accessory Types",
+        href: "/admin/accessory-types",
+        icon: Package,
+      },
       // { name: 'Grapes', href: '/admin/grapes', icon: Grape },
       // { name: 'Pairings', href: '/admin/pairings', icon: Heart },
     ],
