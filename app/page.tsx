@@ -512,6 +512,139 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Tại Sao Rượu Vang Lại Có Nhiều Hương Vị? */}
+      <section className="py-16 lg:py-24 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              Tại Sao Rượu Vang Lại Có Nhiều Hương Vị?
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              Khám phá những bí mật đằng sau sự đa dạng hương vị tuyệt vời của
+              rượu vang
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-8">
+              <div className="space-y-6">
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-amber-600 dark:text-amber-400 font-bold text-lg">
+                      1
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                      Giống Nho & Khí Hậu
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                      Mỗi giống nho mang đặc trưng riêng biệt. Khí hậu, nhiệt độ
+                      và độ ẩm của từng vùng trồng tạo nên sự khác biệt về hương
+                      vị, độ chua và tannin.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-amber-600 dark:text-amber-400 font-bold text-lg">
+                      2
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                      Quy Trình Lên Men
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                      Thời gian lên men, nhiệt độ và loại men được sử dụng ảnh
+                      hưởng trực tiếp đến hương vị cuối cùng. Lên men trong
+                      thùng gỗ sồi tạo hương vani và gỗ.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-amber-600 dark:text-amber-400 font-bold text-lg">
+                      3
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                      Thời Gian Ủ & Lão Hóa
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                      Rượu vang càng ủ lâu càng phát triển hương vị phức tạp.
+                      Quá trình lão hóa trong thùng gỗ hoặc chai tạo ra các
+                      hương thứ cấp như trái cây khô, gia vị.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-amber-600 dark:text-amber-400 font-bold text-lg">
+                      4
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                      Kỹ Thuật Sản Xuất
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                      Các kỹ thuật như maceration, malolactic fermentation, và
+                      blending cho phép nhà sản xuất tạo ra những hương vị độc
+                      đáo và cân bằng.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4">
+                <Link href="/about">
+                  <Button
+                    size="lg"
+                    className="bg-amber-600 hover:bg-amber-700 text-white"
+                  >
+                    Tìm hiểu thêm về rượu vang
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="relative w-full h-96 lg:h-[500px] rounded-2xl overflow-hidden shadow-2xl">
+                <Image
+                  src="https://images.pexels.com/photos/1283219/pexels-photo-1283219.jpeg"
+                  alt="Wine production process"
+                  fill
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+              </div>
+
+              {/* Wine facts overlay */}
+              <div className="absolute -bottom-6 -right-6 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-xl max-w-xs">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Star className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
+                    Sự Thật Thú Vị
+                  </h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Một chai rượu vang có thể chứa hơn 800 hợp chất hương vị
+                    khác nhau, tạo nên sự phức tạp và độc đáo cho mỗi loại rượu.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* FLASH SALE Section */}
       <section className="py-16 lg:py-24 bg-red-50 dark:bg-red-900/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
