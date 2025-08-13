@@ -20,7 +20,7 @@ import Image from "next/image";
 
 interface OrderItem {
   product_id: string;
-  product_type: "wine" | "accessory";
+  product_type: "wine" | "accessory" | "gift";
   name: string;
   price: number;
   quantity: number;
@@ -32,6 +32,10 @@ interface OrderItem {
   // Accessory specific fields
   accessory_type?: string;
   brand?: string;
+  // Gift specific fields
+  gift_type?: string;
+  theme?: string;
+  include_wine?: boolean;
 }
 
 interface Order {
@@ -537,6 +541,16 @@ export default function OrderHistory() {
                                     {item.accessory_type} • {item.brand}
                                   </>
                                 )}
+                              {item.product_type === "gift" && (
+                                <>
+                                  {item.gift_type === "set"
+                                    ? "Set quà"
+                                    : item.gift_type === "single"
+                                    ? "1 chai"
+                                    : "Combo"}{" "}
+                                  • {item.theme || ""}
+                                </>
+                              )}
                             </p>
                             <p className="text-xs text-gray-600 mt-1">
                               Số lượng: {item.quantity}

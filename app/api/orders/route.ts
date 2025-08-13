@@ -21,7 +21,7 @@ interface Order extends RowDataPacket {
 
 interface OrderItem extends RowDataPacket {
   product_id: string;
-  product_type: 'wine' | 'accessory';
+  product_type: "wine" | "accessory" | "gift";
   name: string;
   quantity: number;
   unit_price: number;
@@ -31,6 +31,9 @@ interface OrderItem extends RowDataPacket {
   year?: number;
   accessory_type?: string;
   brand?: string;
+  gift_type?: string;
+  theme?: string;
+  include_wine?: boolean;
 }
 
 export async function POST(request: Request) {
@@ -59,6 +62,27 @@ export async function POST(request: Request) {
       total,
       notes,
     } = await request.json();
+
+    // Debug logging
+    console.log("Order data received:", {
+      fullName,
+      email,
+      phone,
+      address,
+      paymentMethod,
+      itemsCount: items?.length,
+      total,
+      notes,
+      items: items?.map((item: any) => ({
+        productType: item.productType,
+        hasWine: !!item.wine,
+        hasAccessory: !!item.accessory,
+        hasGift: !!item.gift,
+        productId: item.wine?.id || item.accessory?.id || item.gift?.id,
+        quantity: item.quantity,
+        price: item.wine?.price || item.accessory?.price || item.gift?.price,
+      })),
+    });
 
     // Kiểm tra dữ liệu bắt buộc
     if (
@@ -119,7 +143,7 @@ export async function POST(request: Request) {
 
       // Thêm các mục đơn hàng
       for (const item of items) {
-        const product = item.wine || item.accessory;
+        const product = item.wine || item.accessory || item.gift;
         const productType = item.productType;
 
         if (!product?.id || !item.quantity || !product?.price) {
@@ -197,21 +221,27 @@ export async function GET(request: Request) {
             CASE 
               WHEN oi.product_type = 'wine' THEN w.name
               WHEN oi.product_type = 'accessory' THEN a.name
+              WHEN oi.product_type = 'gift' THEN g.name
             END as name,
             CASE 
               WHEN oi.product_type = 'wine' THEN w.images
               WHEN oi.product_type = 'accessory' THEN a.images
+              WHEN oi.product_type = 'gift' THEN g.images
             END as images,
             w.winery,
             c.name AS country,
             w.year,
             at.name AS accessory_type,
-            a.brand
+            a.brand,
+            g.gift_type,
+            g.theme,
+            g.include_wine
            FROM OrderItems oi 
            LEFT JOIN Wines w ON oi.product_id = w.id AND oi.product_type = 'wine'
            LEFT JOIN Countries c ON w.country_id = c.country_id
            LEFT JOIN Accessories a ON oi.product_id = a.id AND oi.product_type = 'accessory'
            LEFT JOIN AccessoryTypes at ON a.accessory_type_id = at.accessory_type_id
+           LEFT JOIN Gifts g ON oi.product_id = g.id AND oi.product_type = 'gift'
            WHERE oi.order_id = ?`,
           [order.order_id]
         );
@@ -233,6 +263,10 @@ export async function GET(request: Request) {
             // Accessory specific fields
             accessory_type: item.accessory_type,
             brand: item.brand,
+            // Gift specific fields
+            gift_type: item.gift_type,
+            theme: item.theme,
+            include_wine: item.include_wine,
           })),
         };
       })

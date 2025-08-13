@@ -368,7 +368,7 @@ export default function Checkout() {
                     <p className="text-gray-600">Giỏ hàng trống</p>
                   ) : (
                     cartItems.map((item) => {
-                      const product = item.wine || item.accessory;
+                      const product = item.wine || item.accessory || item.gift;
                       const productType = item.productType;
 
                       if (!product) return null;
@@ -406,6 +406,18 @@ export default function Checkout() {
                                     {item.accessory.brand}
                                   </>
                                 )}
+
+                              {productType === "gift" && item.gift && (
+                                <>
+                                  {`${
+                                    item.gift?.giftType === "set"
+                                      ? "Set quà"
+                                      : item.gift?.giftType === "single"
+                                      ? "1 chai"
+                                      : "Combo"
+                                  } • ${item.gift?.theme || ""}`}
+                                </>
+                              )}
                             </p>
                             <p className="text-gray-600 text-sm">
                               Số lượng: {item.quantity}
