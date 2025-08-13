@@ -171,7 +171,7 @@ function ProductsContent({ initialWines }: { initialWines: Wine[] }) {
         />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center text-white px-4">
-            <h1 className="text-3xl md:text-5xl font-bold mb-2">Sản phẩm</h1>
+            <h1 className="text-3xl md:text-5xl font-bold mb-2">Rượu vang</h1>
             <p className="text-lg md:text-xl max-w-2xl">
               Khám phá bộ sưu tập rượu vang cao cấp từ khắp nơi trên thế giới
             </p>

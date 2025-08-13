@@ -6,18 +6,40 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ShoppingCart, User, LogOut, Menu, X, Search } from "lucide-react";
+import {
+  ShoppingCart,
+  User,
+  LogOut,
+  Menu,
+  X,
+  Search,
+  ChevronDown,
+  ChevronRight,
+} from "lucide-react";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 
 // Constants
 const SCROLL_THRESHOLD = 80;
 const NAVIGATION_ITEMS = [
   { href: "/", label: "Trang chủ" },
-  { href: "/products", label: "Sản phẩm" },
+  { href: "/products", label: "Rượu vang" },
   { href: "/accessories", label: "Phụ kiện" },
   { href: "/about", label: "Giới thiệu" },
   { href: "/contact", label: "Liên hệ" },
   { href: "/history", label: "Lịch sử đặt hàng" },
+];
+
+const WINE_TYPES = [
+  { type: "red", label: "Rượu Vang Đỏ" },
+  { type: "white", label: "Rượu Vang Trắng" },
+  { type: "rose", label: "Rượu Vang Hồng" },
+  { type: "sparkling", label: "Rượu Vang Sủi" },
+];
+
+const ACCESSORY_TYPES_MENU = [
+  { key: "decanter", label: "Bình thở" },
+  { key: "goblet", label: "Ly rượu" },
+  { key: "opener", label: "Dụng cụ mở rượu" },
 ];
 
 const SearchComponent = ({
@@ -78,6 +100,10 @@ export default function Header() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showNav, setShowNav] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
+  const [isProductsOpen, setIsProductsOpen] = useState(false);
+  const [isAccessoriesOpen, setIsAccessoriesOpen] = useState(false);
+  const [mobileProductsOpen, setMobileProductsOpen] = useState(false);
+  const [mobileAccessoriesOpen, setMobileAccessoriesOpen] = useState(false);
   const lastScrollY = useRef(0);
   const router = useRouter();
 
@@ -271,20 +297,172 @@ export default function Header() {
           : "flex justify-center items-center space-x-8 h-10"
       }
     >
-      {NAVIGATION_ITEMS.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className={
-            isMobile
-              ? "text-gray-700 dark:text-gray-300 hover:text-red-800 dark:hover:text-red-400 transition-colors py-2"
-              : "nav-link"
-          }
-          onClick={isMobile ? handleLinkClick : undefined}
-        >
-          {item.label}
-        </Link>
-      ))}
+      {NAVIGATION_ITEMS.map((item) => {
+        // Mobile expandable: Products
+        if (isMobile && item.href === "/products") {
+          return (
+            <div key={item.href} className="flex flex-col">
+              <button
+                type="button"
+                onClick={() => setMobileProductsOpen((v) => !v)}
+                className="w-full text-left flex items-center justify-between py-2 text-gray-700 dark:text-gray-300 hover:text-red-800 dark:hover:text-red-400"
+                aria-expanded={mobileProductsOpen}
+                aria-controls="mobile-products-submenu"
+              >
+                <span>Rượu vang</span>
+                {mobileProductsOpen ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </button>
+              {mobileProductsOpen && (
+                <div
+                  id="mobile-products-submenu"
+                  className="ml-3 border-l border-gray-200 dark:border-gray-700 pl-3 space-y-1"
+                >
+                  {WINE_TYPES.map(({ type, label }) => (
+                    <Link
+                      key={type}
+                      href={`/products?type=${type}`}
+                      onClick={handleLinkClick}
+                      className="block py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-red-800 dark:hover:text-red-400"
+                    >
+                      {label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        // Mobile expandable: Accessories
+        if (isMobile && item.href === "/accessories") {
+          return (
+            <div key={item.href} className="flex flex-col">
+              <button
+                type="button"
+                onClick={() => setMobileAccessoriesOpen((v) => !v)}
+                className="w-full text-left flex items-center justify-between py-2 text-gray-700 dark:text-gray-300 hover:text-red-800 dark:hover:text-red-400"
+                aria-expanded={mobileAccessoriesOpen}
+                aria-controls="mobile-accessories-submenu"
+              >
+                <span>Phụ kiện</span>
+                {mobileAccessoriesOpen ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </button>
+              {mobileAccessoriesOpen && (
+                <div
+                  id="mobile-accessories-submenu"
+                  className="ml-3 border-l border-gray-200 dark:border-gray-700 pl-3 space-y-1"
+                >
+                  {ACCESSORY_TYPES_MENU.map(({ key, label }) => (
+                    <Link
+                      key={key}
+                      href={`/accessories?type=${encodeURIComponent(key)}`}
+                      onClick={handleLinkClick}
+                      className="block py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-red-800 dark:hover:text-red-400"
+                    >
+                      {label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        if (!isMobile && item.href === "/products") {
+          return (
+            <div
+              key={item.href}
+              className="relative"
+              onMouseEnter={() => setIsProductsOpen(true)}
+              onMouseLeave={() => setIsProductsOpen(false)}
+            >
+              <Link href={item.href} className="nav-link">
+                {item.label}
+              </Link>
+              {isProductsOpen && (
+                <>
+                  {/* Hover bridge to prevent gap losing hover */}
+                  <div className="absolute top-full left  w-64 h-3" />
+                  <div className="absolute top-full left  mt-3 z-[100]">
+                    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg p-2 w-64">
+                      <div className="py-1">
+                        {WINE_TYPES.map(({ type, label }) => (
+                          <Link
+                            key={type}
+                            href={`/products?type=${type}`}
+                            className="block px-3 py-2 rounded-md text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-red-700 dark:hover:text-red-400"
+                          >
+                            {label}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          );
+        }
+
+        if (!isMobile && item.href === "/accessories") {
+          return (
+            <div
+              key={item.href}
+              className="relative"
+              onMouseEnter={() => setIsAccessoriesOpen(true)}
+              onMouseLeave={() => setIsAccessoriesOpen(false)}
+            >
+              <Link href={item.href} className="nav-link">
+                {item.label}
+              </Link>
+              {isAccessoriesOpen && (
+                <>
+                  {/* Hover bridge for accessories dropdown */}
+                  <div className="absolute top-full left w-64 h-3" />
+                  <div className="absolute top-full left mt-3 z-[100]">
+                    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg p-2 w-64">
+                      <div className="py-1">
+                        {ACCESSORY_TYPES_MENU.map(({ key, label }) => (
+                          <Link
+                            key={key}
+                            href={`/accessories?type=${key}`}
+                            className="block px-3 py-2 rounded-md text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-red-700 dark:hover:text-red-400"
+                          >
+                            {label}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          );
+        }
+
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={
+              isMobile
+                ? "text-gray-700 dark:text-gray-300 hover:text-red-800 dark:hover:text-red-400 transition-colors py-2"
+                : "nav-link"
+            }
+            onClick={isMobile ? handleLinkClick : undefined}
+          >
+            {item.label}
+          </Link>
+        );
+      })}
     </nav>
   );
 
