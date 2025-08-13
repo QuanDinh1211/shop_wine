@@ -48,7 +48,9 @@ export default function HomePage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/wines/featured", { cache: "no-store" });
+      const res = await fetch("/api/wines/featured?limit=4", {
+        cache: "no-store",
+      });
       if (!res.ok) {
         throw new Error("Không thể lấy danh sách sản phẩm nổi bật");
       }
@@ -66,7 +68,7 @@ export default function HomePage() {
     setAccessoriesLoading(true);
     setAccessoriesError(null);
     try {
-      const res = await fetch("/api/accessories/featured", {
+      const res = await fetch("/api/accessories/featured?limit=4", {
         cache: "no-store",
       });
       if (!res.ok) {
@@ -128,16 +130,28 @@ export default function HomePage() {
 
   // Đồng hồ đếm ngược cho FLASH SALE
   useEffect(() => {
-    const endTime = new Date();
-    endTime.setHours(endTime.getHours() + 24);
+    // 1️⃣ Lấy endTime từ localStorage hoặc tạo mới
+    let storedEndTime = localStorage.getItem("flashSaleEndTime");
+    if (!storedEndTime) {
+      const endTime = new Date();
+      endTime.setHours(endTime.getHours() + 24);
+      storedEndTime = endTime.getTime().toString(); // lưu dạng timestamp string
+      localStorage.setItem("flashSaleEndTime", storedEndTime);
+    }
 
+    const endTimeMs = Number(storedEndTime);
+
+    // 2️⃣ Hàm update countdown
     const updateTimer = () => {
-      const now = new Date();
-      const diff = endTime.getTime() - now.getTime();
+      const now = Date.now();
+      const diff = endTimeMs - now;
+
       if (diff <= 0) {
         setTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
+        localStorage.removeItem("flashSaleEndTime"); // Xóa khi hết hạn
         return;
       }
+
       const hours = Math.floor(diff / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
@@ -146,6 +160,7 @@ export default function HomePage() {
 
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
+
     return () => clearInterval(interval);
   }, []);
 

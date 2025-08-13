@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
-import mysql, { RowDataPacket } from 'mysql2/promise';
-import { config } from '@/config/db';
-import { Wine } from '@/lib/types';
+import { NextRequest, NextResponse } from "next/server";
+import mysql, { RowDataPacket } from "mysql2/promise";
+import { config } from "@/config/db";
+import { Wine } from "@/lib/types";
 
 // Define a type for the raw query result
 interface WineRow extends RowDataPacket {
@@ -25,9 +25,25 @@ interface WineRow extends RowDataPacket {
   serving_temp: string | null;
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const connection = await mysql.createConnection(config);
+
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+
+    const offset = (page - 1) * limit;
+
+    if (page < 1 || limit < 1) {
+      return NextResponse.json(
+        { error: "Tham số page và limit phải lớn hơn 0" },
+        { status: 400 }
+      );
+    }
+
+    const safeLimit = Math.floor(limit);
+    const safeOffset = Math.floor(offset);
 
     // Fetch featured wines
     const [rows]: [WineRow[], any] = await connection.execute(`
@@ -54,6 +70,7 @@ export async function GET() {
       JOIN WineTypes wt ON w.wine_type_id = wt.wine_type_id
       JOIN Countries c ON w.country_id = c.country_id
       WHERE w.featured = TRUE
+      LIMIT ${safeLimit} OFFSET ${safeOffset}
     `);
 
     // Transform rows to Wine[] and fetch grapes and pairings
@@ -86,14 +103,14 @@ export async function GET() {
         // Parse images from JSON string
         let images: string[] = [];
 
-        if (typeof row.images === 'string') {
-        try {
+        if (typeof row.images === "string") {
+          try {
             images = JSON.parse(row.images);
-        } catch {
-            images = row.images.split(',').map(url => url.trim());
-        }
+          } catch {
+            images = row.images.split(",").map((url) => url.trim());
+          }
         } else if (Array.isArray(row.images)) {
-        images = row.images;
+          images = row.images;
         }
 
         // Return Wine object
@@ -126,7 +143,7 @@ export async function GET() {
     return NextResponse.json(wines);
   } catch (error: any) {
     return NextResponse.json(
-      { message: 'Lỗi server', error: error.message },
+      { message: "Lỗi server", error: error.message },
       { status: 500 }
     );
   }

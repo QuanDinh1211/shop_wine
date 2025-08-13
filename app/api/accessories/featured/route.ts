@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   let connection;
   try {
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get("limit") || "6");
+    const limit = parseInt(searchParams.get("limit") || "8");
 
     if (limit < 1) {
       return NextResponse.json(
