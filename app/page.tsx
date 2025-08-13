@@ -84,22 +84,22 @@ export default function HomePage() {
   };
 
   // Lấy danh sách sản phẩm FLASH SALE
-  const fetchFlashSaleWines = async () => {
-    setFlashSaleLoading(true);
-    setFlashSaleError(null);
-    try {
-      const res = await fetch("/api/wines/flash-sale", { cache: "no-store" });
-      if (!res.ok) {
-        throw new Error("Không thể lấy danh sách sản phẩm FLASH SALE");
-      }
-      const data: Wine[] = await res.json();
-      setFlashSaleWines(data);
-      setFlashSaleLoading(false);
-    } catch (err: any) {
-      setFlashSaleError(err.message);
-      setFlashSaleLoading(false);
-    }
-  };
+  // const fetchFlashSaleWines = async () => {
+  //   setFlashSaleLoading(true);
+  //   setFlashSaleError(null);
+  //   try {
+  //     const res = await fetch("/api/wines/flash-sale", { cache: "no-store" });
+  //     if (!res.ok) {
+  //       throw new Error("Không thể lấy danh sách sản phẩm FLASH SALE");
+  //     }
+  //     const data: Wine[] = await res.json();
+  //     setFlashSaleWines(data);
+  //     setFlashSaleLoading(false);
+  //   } catch (err: any) {
+  //     setFlashSaleError(err.message);
+  //     setFlashSaleLoading(false);
+  //   }
+  // };
 
   // Lấy danh sách sản phẩm theo loại rượu
   const fetchWineTypes = async () => {
@@ -129,45 +129,45 @@ export default function HomePage() {
   };
 
   // Đồng hồ đếm ngược cho FLASH SALE
-  useEffect(() => {
-    // 1️⃣ Lấy endTime từ localStorage hoặc tạo mới
-    let storedEndTime = localStorage.getItem("flashSaleEndTime");
-    if (!storedEndTime) {
-      const endTime = new Date();
-      endTime.setHours(endTime.getHours() + 24);
-      storedEndTime = endTime.getTime().toString(); // lưu dạng timestamp string
-      localStorage.setItem("flashSaleEndTime", storedEndTime);
-    }
+  // useEffect(() => {
+  //   // 1️⃣ Lấy endTime từ localStorage hoặc tạo mới
+  //   let storedEndTime = localStorage.getItem("flashSaleEndTime");
+  //   if (!storedEndTime) {
+  //     const endTime = new Date();
+  //     endTime.setHours(endTime.getHours() + 24);
+  //     storedEndTime = endTime.getTime().toString(); // lưu dạng timestamp string
+  //     localStorage.setItem("flashSaleEndTime", storedEndTime);
+  //   }
 
-    const endTimeMs = Number(storedEndTime);
+  //   const endTimeMs = Number(storedEndTime);
 
-    // 2️⃣ Hàm update countdown
-    const updateTimer = () => {
-      const now = Date.now();
-      const diff = endTimeMs - now;
+  //   // 2️⃣ Hàm update countdown
+  //   const updateTimer = () => {
+  //     const now = Date.now();
+  //     const diff = endTimeMs - now;
 
-      if (diff <= 0) {
-        setTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
-        localStorage.removeItem("flashSaleEndTime"); // Xóa khi hết hạn
-        return;
-      }
+  //     if (diff <= 0) {
+  //       setTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
+  //       localStorage.removeItem("flashSaleEndTime"); // Xóa khi hết hạn
+  //       return;
+  //     }
 
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      setTimeLeft({ hours, minutes, seconds });
-    };
+  //     const hours = Math.floor(diff / (1000 * 60 * 60));
+  //     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  //     const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+  //     setTimeLeft({ hours, minutes, seconds });
+  //   };
 
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
+  //   updateTimer();
+  //   const interval = setInterval(updateTimer, 1000);
 
-    return () => clearInterval(interval);
-  }, []);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   useEffect(() => {
     fetchFeaturedWines();
     fetchFeaturedAccessories();
-    fetchFlashSaleWines();
+    // fetchFlashSaleWines();
     fetchWineTypes();
   }, []);
 
@@ -311,7 +311,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Featured Products */}
+      {/* Featured Products - Đặt đầu tiên sau Hero để thu hút ngay lập tức */}
       <section className="py-16 lg:py-24 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -378,74 +378,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Featured Accessories */}
-      <section className="py-16 lg:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Phụ kiện nổi bật
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Bộ sưu tập phụ kiện cao cấp để hoàn thiện trải nghiệm thưởng rượu
-              của bạn
-            </p>
-          </div>
-
-          {accessoriesLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-12">
-              {/* Skeleton Loader */}
-              {[...Array(4)].map((_, index) => (
-                <div
-                  key={index}
-                  className="border rounded-lg p-4 shadow-sm bg-white dark:bg-gray-800 animate-pulse"
-                >
-                  <div className="w-full h-64 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-                  <div className="mt-4 h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-                  <div className="mt-2 h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-                  <div className="mt-2 h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
-                  <div className="mt-4 h-10 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-                </div>
-              ))}
-            </div>
-          ) : accessoriesError ? (
-            <div className="flex flex-col items-center justify-center h-64 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-4">
-              <div className="text-red-600 text-2xl font-semibold mb-2">
-                Ôi không, có lỗi xảy ra!
-              </div>
-              <p className="text-gray-600 dark:text-gray-400 text-center mb-4">
-                {accessoriesError}
-              </p>
-              <Button
-                onClick={fetchFeaturedAccessories}
-                className="bg-red-600 hover:bg-red-700 text-white"
-              >
-                <RefreshCw className="mr-2 h-5 w-5" />
-                Thử lại
-              </Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-12">
-              {featuredAccessories.map((accessory) => (
-                <AccessoryCard key={accessory.id} accessory={accessory} />
-              ))}
-            </div>
-          )}
-
-          <div className="text-center">
-            <Link href="/accessories">
-              <Button
-                size="lg"
-                className="bg-red-600 hover:bg-red-700 text-white"
-              >
-                Xem tất cả phụ kiện
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Why Choose Us */}
+      {/* Why Choose Us - Đặt sau Featured Products để xây dựng niềm tin */}
       <section className="py-16 lg:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -512,214 +445,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Tại Sao Rượu Vang Lại Có Nhiều Hương Vị? */}
-      <section className="py-16 lg:py-24 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Tại Sao Rượu Vang Lại Có Nhiều Hương Vị?
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-              Khám phá những bí mật đằng sau sự đa dạng hương vị tuyệt vời của
-              rượu vang
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
-              <div className="space-y-6">
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-amber-600 dark:text-amber-400 font-bold text-lg">
-                      1
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                      Giống Nho & Khí Hậu
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                      Mỗi giống nho mang đặc trưng riêng biệt. Khí hậu, nhiệt độ
-                      và độ ẩm của từng vùng trồng tạo nên sự khác biệt về hương
-                      vị, độ chua và tannin.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-amber-600 dark:text-amber-400 font-bold text-lg">
-                      2
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                      Quy Trình Lên Men
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                      Thời gian lên men, nhiệt độ và loại men được sử dụng ảnh
-                      hưởng trực tiếp đến hương vị cuối cùng. Lên men trong
-                      thùng gỗ sồi tạo hương vani và gỗ.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-amber-600 dark:text-amber-400 font-bold text-lg">
-                      3
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                      Thời Gian Ủ & Lão Hóa
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                      Rượu vang càng ủ lâu càng phát triển hương vị phức tạp.
-                      Quá trình lão hóa trong thùng gỗ hoặc chai tạo ra các
-                      hương thứ cấp như trái cây khô, gia vị.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-amber-600 dark:text-amber-400 font-bold text-lg">
-                      4
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                      Kỹ Thuật Sản Xuất
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                      Các kỹ thuật như maceration, malolactic fermentation, và
-                      blending cho phép nhà sản xuất tạo ra những hương vị độc
-                      đáo và cân bằng.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-4">
-                <Link href="/about">
-                  <Button
-                    size="lg"
-                    className="bg-amber-600 hover:bg-amber-700 text-white"
-                  >
-                    Tìm hiểu thêm về rượu vang
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
-
-            <div className="relative">
-              <div className="relative w-full h-96 lg:h-[500px] rounded-2xl overflow-hidden shadow-2xl">
-                <Image
-                  src="https://images.pexels.com/photos/1283219/pexels-photo-1283219.jpeg"
-                  alt="Wine production process"
-                  fill
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-              </div>
-
-              {/* Wine facts overlay */}
-              <div className="absolute -bottom-6 -right-6 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-xl max-w-xs">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <Star className="h-8 w-8 text-amber-600 dark:text-amber-400" />
-                  </div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-                    Sự Thật Thú Vị
-                  </h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Một chai rượu vang có thể chứa hơn 800 hợp chất hương vị
-                    khác nhau, tạo nên sự phức tạp và độc đáo cho mỗi loại rượu.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FLASH SALE Section */}
-      <section className="py-16 lg:py-24 bg-red-50 dark:bg-red-900/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              FLASH SALE
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Cơ hội sở hữu những chai rượu vang cao cấp với giá ưu đãi đặc
-              biệt! Nhanh tay trước khi hết thời gian!
-            </p>
-            <div className="flex justify-center items-center mt-4">
-              <Clock className="h-6 w-6 text-red-600 mr-2" />
-              <span className="text-xl font-semibold text-red-600 dark:text-red-400">
-                {timeLeft.hours.toString().padStart(2, "0")}:
-                {timeLeft.minutes.toString().padStart(2, "0")}:
-                {timeLeft.seconds.toString().padStart(2, "0")}
-              </span>
-            </div>
-          </div>
-
-          {flashSaleLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-12">
-              {[...Array(4)].map((_, index) => (
-                <div
-                  key={index}
-                  className="border rounded-lg p-4 shadow-sm bg-white dark:bg-gray-800 animate-pulse"
-                >
-                  <div className="w-full h-64 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-                  <div className="mt-4 h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-                  <div className="mt-2 h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-                  <div className="mt-2 h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
-                  <div className="mt-4 h-10 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-                </div>
-              ))}
-            </div>
-          ) : flashSaleError ? (
-            <div className="flex flex-col items-center justify-center h-64 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-4">
-              <div className="text-red-600 text-2xl font-semibold mb-2">
-                Ôi không, có lỗi xảy ra!
-              </div>
-              <p className="text-gray-600 dark:text-gray-400 text-center mb-4">
-                {flashSaleError}
-              </p>
-              <Button
-                onClick={fetchFlashSaleWines}
-                className="bg-red-600 hover:bg-red-700 text-white"
-              >
-                <RefreshCw className="mr-2 h-5 w-5" />
-                Thử lại
-              </Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-12">
-              {flashSaleWines.map((wine) => (
-                <ProductCard key={wine.id} wine={wine} />
-              ))}
-            </div>
-          )}
-
-          <div className="text-center">
-            <Link href="/products?flashSale=true">
-              <Button
-                size="lg"
-                className="bg-red-600 hover:bg-red-700 text-white"
-              >
-                Xem tất cả FLASH SALE
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Products by Wine Type Section */}
+      {/* Products by Wine Type Section - Đặt sau Flash Sale để mở rộng lựa chọn */}
       <section className="py-16 lg:py-24 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -772,7 +498,7 @@ export default function HomePage() {
             </div>
           ) : (
             <div className="space-y-12">
-              {wineTypes.map(({ type, wines }) => (
+              {wineTypes.map(({ type, wines }, index) => (
                 <div key={type}>
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">
@@ -792,6 +518,109 @@ export default function HomePage() {
                       <ProductCard key={wine.id} wine={wine} />
                     ))}
                   </div>
+
+                  {index === 1 && (
+                    <div className="my-6">
+                      <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-800/30 dark:to-slate-900/30 shadow-lg dark:shadow-black/30 border border-gray-200 dark:border-gray-700">
+                        <div className="px-4 sm:px-6 lg:px-8 py-10">
+                          <div className="text-center mb-8">
+                            <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-3">
+                              Tại Sao Rượu Vang Lại Có Nhiều Hương Vị?
+                            </h3>
+                            <p className="text-base text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+                              Khám phá những yếu tố tạo nên sự đa dạng hương vị
+                              của rượu vang: giống nho, khí hậu, quy trình lên
+                              men và thời gian ủ.
+                            </p>
+                          </div>
+
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                            <div className="space-y-6">
+                              <div className="flex items-start space-x-4">
+                                <div className="w-10 h-10 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center flex-shrink-0">
+                                  <span className="text-red-600 dark:text-red-400 font-bold">
+                                    1
+                                  </span>
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
+                                    Giống Nho & Khí Hậu
+                                  </h4>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    Mỗi giống nho và terroir mang đến cấu trúc
+                                    hương vị khác nhau.
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex items-start space-x-4">
+                                <div className="w-10 h-10 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center flex-shrink-0">
+                                  <span className="text-red-600 dark:text-red-400 font-bold">
+                                    2
+                                  </span>
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
+                                    Quy Trình Lên Men
+                                  </h4>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    Nhiệt độ, chủng men và vật liệu chứa (thép,
+                                    sồi) ảnh hưởng mùi vị.
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex items-start space-x-4">
+                                <div className="w-10 h-10 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center flex-shrink-0">
+                                  <span className="text-red-600 dark:text-red-400 font-bold">
+                                    3
+                                  </span>
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
+                                    Thời Gian Ủ & Lão Hóa
+                                  </h4>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    Lão hóa trong thùng/ chai tạo hương thứ cấp
+                                    như vani, gia vị, trái cây khô.
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex items-start space-x-4">
+                                <div className="w-10 h-10 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center flex-shrink-0">
+                                  <span className="text-red-600 dark:text-red-400 font-bold">
+                                    4
+                                  </span>
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
+                                    Kỹ Thuật Sản Xuất
+                                  </h4>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    Các kỹ thuật như maceration, MLF, blending
+                                    giúp tối ưu cấu trúc.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="relative">
+                              <div className="relative w-full h-64 lg:h-72 rounded-xl overflow-hidden shadow-xl">
+                                <Image
+                                  src="https://images.pexels.com/photos/1283219/pexels-photo-1283219.jpeg"
+                                  alt="Wine production process"
+                                  fill
+                                  className="object-cover"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -799,7 +628,74 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Newsletter Section */}
+      {/* Featured Accessories - Đặt sau Wine Types để bổ sung trải nghiệm */}
+      <section className="py-16 lg:py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              Phụ kiện rượu vang
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              Bộ sưu tập phụ kiện cao cấp để hoàn thiện trải nghiệm thưởng rượu
+              của bạn
+            </p>
+          </div>
+
+          {accessoriesLoading ? (
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-12">
+              {/* Skeleton Loader */}
+              {[...Array(4)].map((_, index) => (
+                <div
+                  key={index}
+                  className="border rounded-lg p-4 shadow-sm bg-white dark:bg-gray-800 animate-pulse"
+                >
+                  <div className="w-full h-64 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                  <div className="mt-4 h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                  <div className="mt-2 h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                  <div className="mt-2 h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+                  <div className="mt-4 h-10 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                </div>
+              ))}
+            </div>
+          ) : accessoriesError ? (
+            <div className="flex flex-col items-center justify-center h-64 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-4">
+              <div className="text-red-600 text-2xl font-semibold mb-2">
+                Ôi không, có lỗi xảy ra!
+              </div>
+              <p className="text-gray-600 dark:text-gray-400 text-center mb-4">
+                {accessoriesError}
+              </p>
+              <Button
+                onClick={fetchFeaturedAccessories}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                <RefreshCw className="mr-2 h-5 w-5" />
+                Thử lại
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-12">
+              {featuredAccessories.map((accessory) => (
+                <AccessoryCard key={accessory.id} accessory={accessory} />
+              ))}
+            </div>
+          )}
+
+          <div className="text-center">
+            <Link href="/accessories">
+              <Button
+                size="lg"
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                Xem tất cả phụ kiện
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Newsletter Section - Đặt cuối cùng để capture email */}
       <section className="bg-red-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl lg:text-4xl font-bold mb-4">
