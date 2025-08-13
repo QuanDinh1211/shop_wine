@@ -20,12 +20,22 @@ interface AccessoryFiltersProps {
   };
   onFiltersChange: (filters: any) => void;
   onClearFilters: () => void;
+  externalFilters?: Partial<{
+    name: string;
+    types: number[];
+    brands: string[];
+    colors: string[];
+    materials: string[];
+    priceRange: [number, number];
+    inStock: boolean;
+  }>;
 }
 
 export const AccessoryFilters: React.FC<AccessoryFiltersProps> = ({
   filters,
   onFiltersChange,
   onClearFilters,
+  externalFilters,
 }) => {
   const [localFilters, setLocalFilters] = useState({
     name: "",
@@ -39,6 +49,22 @@ export const AccessoryFilters: React.FC<AccessoryFiltersProps> = ({
     ],
     inStock: false,
   });
+
+  // Sync external filters (e.g., from URL) into local UI state once, without overriding arrays with undefined
+  const initializedRef = React.useRef(false);
+  useEffect(() => {
+    if (!externalFilters || initializedRef.current) return;
+    setLocalFilters((prev) => ({
+      name: externalFilters.name ?? prev.name ?? "",
+      types: externalFilters.types ?? prev.types ?? [],
+      brands: externalFilters.brands ?? prev.brands ?? [],
+      colors: externalFilters.colors ?? prev.colors ?? [],
+      materials: externalFilters.materials ?? prev.materials ?? [],
+      priceRange: (externalFilters as any).priceRange || prev.priceRange,
+      inStock: externalFilters.inStock ?? prev.inStock ?? false,
+    }));
+    initializedRef.current = true;
+  }, [externalFilters]);
 
   const handleFilterChange = (key: string, value: any) => {
     const newFilters = { ...localFilters, [key]: value };
@@ -113,17 +139,6 @@ export const AccessoryFilters: React.FC<AccessoryFiltersProps> = ({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">Bộ lọc</CardTitle>
-          {hasActiveFilters() && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearAllFilters}
-              className="h-8 px-2"
-            >
-              <X className="h-4 w-4 mr-1" />
-              Xóa tất cả
-            </Button>
-          )}
         </div>
       </CardHeader>
 

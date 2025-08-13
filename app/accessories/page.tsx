@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { AccessoryCard } from "@/components/products/AccessoryCard";
 import { AccessoryFilters } from "@/components/products/AccessoryFilters";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { Filter, Grid, List, Search } from "lucide-react";
 import { Accessory } from "@/lib/types";
 import { useDebounce } from "use-debounce";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 
 type SortOption =
   | "name-asc"
@@ -43,6 +44,10 @@ export default function AccessoriesPage() {
 
       if (appliedFilters) {
         if (appliedFilters.name) params.append("name", appliedFilters.name);
+        // Allow passing direct type name from URL without mapping by id
+        if (appliedFilters.typeNameDirect) {
+          params.append("type", appliedFilters.typeNameDirect);
+        }
         if (appliedFilters.types?.length > 0) {
           const selectedTypes = filters.types
             .filter((type: any) => appliedFilters.types.includes(type.id))
@@ -98,17 +103,45 @@ export default function AccessoriesPage() {
     fetchFilters();
   }, []);
 
-  useEffect(() => {
-    if (filters) {
-      fetchAccessories();
-    }
-  }, [filters]);
+  const searchParams = useSearchParams();
+  const hasLoadedByTypeRef = useRef(false);
 
+  // Load initial data, respecting ?type= in URL
   useEffect(() => {
-    if (filters) {
-      fetchAccessories();
+    if (!filters) return;
+
+    const typeParamRaw = searchParams.get("type");
+    if (typeParamRaw && !hasLoadedByTypeRef.current) {
+      const typeParam = decodeURIComponent(typeParamRaw).toLowerCase();
+      // Map common keys to Vietnamese names keywords
+      const keywordMap: Record<string, string[]> = {
+        decanter: ["decanter", "bình thở"],
+        goblet: ["ly"],
+        opener: ["mở", "dụng cụ mở"],
+      };
+      const keywords = keywordMap[typeParam] || [typeParam];
+
+      const matched = filters.types.find((t: any) =>
+        keywords.some((k) => String(t.name).toLowerCase().includes(k))
+      );
+
+      if (matched) {
+        fetchAccessories({ types: [matched.id] });
+      } else {
+        // Fallback: pass raw type name directly to API
+        fetchAccessories({ typeNameDirect: typeParamRaw });
+      }
+      hasLoadedByTypeRef.current = true;
+      return;
     }
-  }, [debouncedSearch]);
+
+    if (!hasLoadedByTypeRef.current) {
+      fetchAccessories();
+      hasLoadedByTypeRef.current = true;
+    }
+  }, [filters, searchParams]);
+
+  // Search is applied client-side on the loaded dataset, no refetch needed
 
   const handleFiltersChange = (newFilters: any) => {
     fetchAccessories(newFilters);
@@ -192,6 +225,26 @@ export default function AccessoriesPage() {
                 filters={filters}
                 onFiltersChange={handleFiltersChange}
                 onClearFilters={handleClearFilters}
+                externalFilters={{
+                  types: (() => {
+                    const typeParamRaw = searchParams.get("type");
+                    if (!typeParamRaw) return undefined;
+                    const typeParam =
+                      decodeURIComponent(typeParamRaw).toLowerCase();
+                    const keywordMap: Record<string, string[]> = {
+                      decanter: ["decanter", "bình thở"],
+                      goblet: ["ly"],
+                      opener: ["mở", "dụng cụ mở"],
+                    };
+                    const keywords = keywordMap[typeParam] || [typeParam];
+                    const matched = filters.types.find((t: any) =>
+                      keywords.some((k) =>
+                        String(t.name).toLowerCase().includes(k)
+                      )
+                    );
+                    return matched ? [matched.id] : undefined;
+                  })(),
+                }}
               />
             </div>
           </div>

@@ -48,8 +48,19 @@ export async function GET(request: NextRequest) {
     }
 
     if (type) {
-      whereConditions.push("at.name LIKE ?");
-      queryParams.push(`%${type}%`);
+      // Support multiple types separated by comma, OR matching
+      const typeList = type
+        .split(",")
+        .map((t) => t.trim())
+        .filter((t) => t.length > 0);
+      if (typeList.length === 1) {
+        whereConditions.push("at.name LIKE ?");
+        queryParams.push(`%${typeList[0]}%`);
+      } else if (typeList.length > 1) {
+        const orParts = typeList.map(() => "at.name LIKE ?");
+        whereConditions.push(`(${orParts.join(" OR ")})`);
+        typeList.forEach((t) => queryParams.push(`%${t}%`));
+      }
     }
 
     if (brand) {
@@ -212,9 +223,12 @@ export async function POST(request: NextRequest) {
     connection = await getConnection();
 
     // Kiểm tra xem loại phụ kiện có tồn tại không
-    const checkTypeQuery = "SELECT accessory_type_id FROM AccessoryTypes WHERE accessory_type_id = ?";
-    const [typeRows] = await connection.execute(checkTypeQuery, [accessoryTypeId]);
-    
+    const checkTypeQuery =
+      "SELECT accessory_type_id FROM AccessoryTypes WHERE accessory_type_id = ?";
+    const [typeRows] = await connection.execute(checkTypeQuery, [
+      accessoryTypeId,
+    ]);
+
     if ((typeRows as any[]).length === 0) {
       return NextResponse.json(
         { error: "Loại phụ kiện không tồn tại" },
@@ -251,7 +265,8 @@ export async function POST(request: NextRequest) {
     await connection.execute(insertQuery, insertParams);
 
     // Lấy thông tin loại phụ kiện để trả về
-    const typeQuery = "SELECT name FROM AccessoryTypes WHERE accessory_type_id = ?";
+    const typeQuery =
+      "SELECT name FROM AccessoryTypes WHERE accessory_type_id = ?";
     const [typeResult] = await connection.execute(typeQuery, [accessoryTypeId]);
     const accessoryTypeName = (typeResult as any[])[0].name;
 
