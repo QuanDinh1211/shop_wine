@@ -24,6 +24,7 @@ const NAVIGATION_ITEMS = [
   { href: "/", label: "Trang chủ" },
   { href: "/products", label: "Rượu vang" },
   { href: "/accessories", label: "Phụ kiện" },
+  { href: "/gifts", label: "Quà tặng" },
   { href: "/about", label: "Giới thiệu" },
   { href: "/contact", label: "Liên hệ" },
   { href: "/history", label: "Lịch sử đặt hàng" },

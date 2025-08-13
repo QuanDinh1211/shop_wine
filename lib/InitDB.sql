@@ -1,4 +1,27 @@
 -- ==============================
+-- Bảng Gifts (quà tặng rượu vang)
+-- ==============================
+CREATE TABLE IF NOT EXISTS Gifts (
+  id VARCHAR(50) PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  price DECIMAL(15, 2) NOT NULL,
+  original_price DECIMAL(15, 2),
+  description TEXT,
+  images JSON,
+  in_stock TINYINT(1) DEFAULT 1,
+  featured TINYINT(1) DEFAULT 0,
+  gift_type ENUM('set','single','combo') DEFAULT 'set',
+  include_wine TINYINT(1) DEFAULT 0,
+  theme VARCHAR(100),
+  packaging VARCHAR(100),
+  items JSON,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Cập nhật OrderItems cho product_type có 'gift'
+-- Lưu ý: có thể cần điều chỉnh theo cú pháp MySQL/MariaDB phiên bản đang dùng
+-- ALTER TABLE OrderItems MODIFY product_type ENUM('wine','accessory','gift') DEFAULT 'wine';
+-- ==============================
 -- Tạo database
 -- ==============================
 CREATE DATABASE IF NOT EXISTS wine_shop;
@@ -135,7 +158,7 @@ CREATE TABLE OrderItems (
     order_id INT NOT NULL,
     wine_id VARCHAR(50) NULL, -- giữ để code cũ không lỗi
     product_id VARCHAR(50) NOT NULL,
-    product_type ENUM('wine', 'accessory') DEFAULT 'wine',
+    product_type ENUM('wine', 'accessory', 'gifts') DEFAULT 'wine',
     quantity INT NOT NULL,
     unit_price DECIMAL(15, 2) NOT NULL,
     FOREIGN KEY (order_id) REFERENCES Orders(order_id),
@@ -245,3 +268,14 @@ VALUES
 ('A6', 'Ly rượu vang sủi Champagne', 1, 420000, 500000, 'Ly chuyên dụng cho rượu sủi và champagne', '["https://images.pexels.com/photos/1283219/pexels-photo-1283219.jpeg"]', 'Riedel', 'Pha lê', 'Trong suốt', '200ml', 0, 1),
 ('A7', 'Bình thở rượu vang mini', 2, 450000, 600000, 'Bình thở rượu vang kích thước nhỏ gọn', '["https://images.pexels.com/photos/1283219/pexels-photo-1283219.jpeg"]', 'Schott Zwiesel', 'Thủy tinh', 'Trong suốt', '750ml', 0, 1),
 ('A8', 'Dụng cụ mở rượu vang điện tử', 3, 1500000, 1800000, 'Dụng cụ mở rượu vang tự động, tiện lợi', '["https://images.pexels.com/photos/1283219/pexels-photo-1283219.jpeg"]', 'Electric Corkscrew', 'Nhựa + Thép', 'Đen', 'Tiêu chuẩn', 1, 1);
+
+-- Gifts (Quà tặng rượu vang)
+INSERT INTO Gifts (id, name, price, original_price, description, images, in_stock, featured, gift_type, include_wine, theme, packaging, items) VALUES
+('G1', 'Set Quà Tặng Rượu Vang Đỏ Premium', 2500000, 3000000, 'Bộ quà tặng cao cấp gồm 1 chai rượu vang đỏ, 2 ly crystal, dụng cụ mở rượu và túi đựng sang trọng. Phù hợp tặng đối tác, sếp hoặc dịp đặc biệt.', '["https://images.pexels.com/photos/1283219/pexels-photo-1283219.jpeg", "https://images.pexels.com/photos/1303081/pexels-photo-1303081.jpeg"]', 1, 1, 'set', 1, 'Tết', 'Hộp gỗ cao cấp', '["Chai rượu vang đỏ 750ml", "2 ly crystal Riedel", "Dụng cụ mở rượu", "Túi đựng vải"]'),
+('G2', 'Combo Rượu Vang + Phụ Kiện', 1800000, 2200000, 'Bộ combo hoàn chỉnh gồm rượu vang, ly, bình thở và dụng cụ mở rượu. Lý tưởng cho người mới bắt đầu sưu tầm rượu vang.', '["https://images.pexels.com/photos/1303081/pexels-photo-1303081.jpeg", "https://images.pexels.com/photos/1283219/pexels-photo-1283219.jpeg"]', 1, 1, 'combo', 1, 'Sinh nhật', 'Túi vải canvas', '["Chai rượu vang 750ml", "4 ly rượu vang", "Bình thở rượu", "Dụng cụ mở rượu", "Sách hướng dẫn"]'),
+('G3', 'Quà Tặng Noel Rượu Vang', 3200000, 3800000, 'Set quà tặng Noel đặc biệt với rượu vang đỏ, ly champagne, và phụ kiện trang trí. Hoàn hảo cho mùa lễ hội.', '["https://images.pexels.com/photos/1303081/pexels-photo-1303081.jpeg"]', 1, 1, 'set', 1, 'Noel', 'Hộp quà Noel', '["Chai rượu vang đỏ", "2 ly champagne", "Dụng cụ mở rượu", "Phụ kiện trang trí Noel"]'),
+('G4', 'Bộ Quà Tặng Doanh Nghiệp', 4500000, 5200000, 'Bộ quà tặng cao cấp dành cho doanh nghiệp, gồm rượu vang premium, ly crystal và bao bì sang trọng. Thể hiện sự tôn trọng và chuyên nghiệp.', '["https://images.pexels.com/photos/1283219/pexels-photo-1283219.jpeg"]', 1, 0, 'set', 1, 'Doanh nghiệp', 'Hộp gỗ sồi', '["Chai rượu vang cao cấp", "6 ly crystal", "Dụng cụ mở rượu", "Thẻ chúc mừng", "Túi đựng da"]'),
+('G5', 'Set Quà Tặng Không Kèm Rượu', 1200000, 1500000, 'Bộ quà tặng phụ kiện rượu vang không kèm rượu, gồm ly, dụng cụ và túi đựng. Phù hợp cho người đã có rượu vang.', '["https://images.pexels.com/photos/1303081/pexels-photo-1303081.jpeg"]', 1, 0, 'set', 0, 'Tri ân', 'Túi vải cao cấp', '["4 ly rượu vang crystal", "Dụng cụ mở rượu", "Bình thở rượu", "Khăn lau ly"]'),
+('G6', 'Quà Tặng Sinh Nhật Đặc Biệt', 2800000, 3200000, 'Set quà tặng sinh nhật với rượu vang hồng, ly đẹp và bao bì bắt mắt. Hoàn hảo cho người thân yêu.', '["https://images.pexels.com/photos/1283219/pexels-photo-1283219.jpeg"]', 1, 1, 'set', 1, 'Sinh nhật', 'Hộp quà sinh nhật', '["Chai rượu vang hồng", "2 ly crystal", "Dụng cụ mở rượu", "Thẻ chúc mừng"]'),
+('G7', 'Combo Rượu Vang Trắng', 2100000, 2500000, 'Bộ combo rượu vang trắng với ly chuyên dụng và phụ kiện. Lý tưởng cho người thích rượu vang trắng.', '["https://images.pexels.com/photos/1303081/pexels-photo-1303081.jpeg"]', 1, 0, 'combo', 1, 'Tết', 'Túi vải', '["Chai rượu vang trắng", "4 ly rượu vang trắng", "Bình thở rượu", "Dụng cụ mở rượu"]'),
+('G8', 'Set Quà Tặng Cao Cấp', 5500000, 6500000, 'Bộ quà tặng cao cấp nhất với rượu vang premium, ly crystal Riedel và bao bì sang trọng. Dành cho dịp đặc biệt.', '["https://images.pexels.com/photos/1283219/pexels-photo-1283219.jpeg"]', 1, 1, 'set', 1, 'Đặc biệt', 'Hộp gỗ sồi cao cấp', '["Chai rượu vang premium", "6 ly crystal Riedel", "Dụng cụ mở rượu", "Bình thở rượu", "Sách hướng dẫn", "Túi đựng da cao cấp"]');

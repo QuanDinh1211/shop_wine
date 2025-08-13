@@ -7,7 +7,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import { CartItem, Wine, Accessory } from "@/lib/types";
+import { CartItem, Wine, Accessory, Gift } from "@/lib/types";
 
 interface CartState {
   items: CartItem[];
@@ -18,6 +18,7 @@ interface CartState {
 type CartAction =
   | { type: "ADD_WINE"; payload: Wine }
   | { type: "ADD_ACCESSORY"; payload: Accessory }
+  | { type: "ADD_GIFT"; payload: Gift }
   | { type: "REMOVE_ITEM"; payload: string }
   | { type: "UPDATE_QUANTITY"; payload: { id: string; quantity: number } }
   | { type: "CLEAR_CART" }
@@ -27,6 +28,7 @@ const CartContext = createContext<{
   state: CartState;
   addWine: (wine: Wine) => void;
   addAccessory: (accessory: Accessory) => void;
+  addGift: (gift: Gift) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
@@ -86,7 +88,38 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
       }
 
       const total = newItems.reduce((sum, item) => {
-        const price = item.wine?.price || item.accessory?.price || 0;
+        const price =
+          item.wine?.price || item.accessory?.price || item.gift?.price || 0;
+        return sum + price * item.quantity;
+      }, 0);
+      const itemCount = newItems.reduce((sum, item) => sum + item.quantity, 0);
+
+      return { items: newItems, total, itemCount };
+    }
+
+    case "ADD_GIFT": {
+      const existingItem = state.items.find(
+        (item) =>
+          item.gift?.id === action.payload.id && item.productType === "gift"
+      );
+      let newItems: CartItem[];
+
+      if (existingItem) {
+        newItems = state.items.map((item) =>
+          item.gift?.id === action.payload.id && item.productType === "gift"
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      } else {
+        newItems = [
+          ...state.items,
+          { gift: action.payload, quantity: 1, productType: "gift" },
+        ];
+      }
+
+      const total = newItems.reduce((sum, item) => {
+        const price =
+          item.wine?.price || item.accessory?.price || item.gift?.price || 0;
         return sum + price * item.quantity;
       }, 0);
       const itemCount = newItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -96,11 +129,12 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
 
     case "REMOVE_ITEM": {
       const newItems = state.items.filter((item) => {
-        const itemId = item.wine?.id || item.accessory?.id;
+        const itemId = item.wine?.id || item.accessory?.id || item.gift?.id;
         return itemId !== action.payload;
       });
       const total = newItems.reduce((sum, item) => {
-        const price = item.wine?.price || item.accessory?.price || 0;
+        const price =
+          item.wine?.price || item.accessory?.price || item.gift?.price || 0;
         return sum + price * item.quantity;
       }, 0);
       const itemCount = newItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -111,7 +145,7 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
     case "UPDATE_QUANTITY": {
       const newItems = state.items
         .map((item) => {
-          const itemId = item.wine?.id || item.accessory?.id;
+          const itemId = item.wine?.id || item.accessory?.id || item.gift?.id;
           return itemId === action.payload.id
             ? { ...item, quantity: Math.max(0, action.payload.quantity) }
             : item;
@@ -119,7 +153,8 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
         .filter((item) => item.quantity > 0);
 
       const total = newItems.reduce((sum, item) => {
-        const price = item.wine?.price || item.accessory?.price || 0;
+        const price =
+          item.wine?.price || item.accessory?.price || item.gift?.price || 0;
         return sum + price * item.quantity;
       }, 0);
       const itemCount = newItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -132,7 +167,8 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
 
     case "LOAD_CART": {
       const total = action.payload.reduce((sum, item) => {
-        const price = item.wine?.price || item.accessory?.price || 0;
+        const price =
+          item.wine?.price || item.accessory?.price || item.gift?.price || 0;
         return sum + price * item.quantity;
       }, 0);
       const itemCount = action.payload.reduce(
@@ -160,7 +196,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     const savedCart = localStorage.getItem("wine-cart");
     if (savedCart) {
-      dispatch({ type: "LOAD_CART", payload: JSON.parse(savedCart) });
+      try {
+        const parsedCart = JSON.parse(savedCart);
+        // Validate that parsedCart is an array
+        if (Array.isArray(parsedCart)) {
+          dispatch({ type: "LOAD_CART", payload: parsedCart });
+        } else {
+          console.warn("Invalid cart data in localStorage, clearing cart");
+          localStorage.removeItem("wine-cart");
+        }
+      } catch (error) {
+        console.error("Error parsing cart from localStorage:", error);
+        localStorage.removeItem("wine-cart");
+      }
     }
     setLoadCart(false);
   }, []);
@@ -177,6 +225,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const addAccessory = (accessory: Accessory) => {
     dispatch({ type: "ADD_ACCESSORY", payload: accessory });
+  };
+
+  const addGift = (gift: Gift) => {
+    dispatch({ type: "ADD_GIFT", payload: gift });
   };
 
   const removeItem = (id: string) => {
@@ -197,6 +249,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         state,
         addWine,
         addAccessory,
+        addGift,
         removeItem,
         updateQuantity,
         clearCart,

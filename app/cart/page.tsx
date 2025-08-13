@@ -70,8 +70,69 @@ export default function CartPage() {
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
             {state.items.map((item) => {
-              const product = item.wine || item.accessory;
+              const product = item.wine || item.accessory || item.gift;
               const productType = item.productType;
+
+              // Skip rendering if product is undefined
+              if (!product) {
+                return null;
+              }
+
+              // Safely get image source
+              const getImageSrc = () => {
+                if (product.images && product.images.length > 0) {
+                  return product.images[0];
+                }
+                // Fallback images for each product type
+                switch (productType) {
+                  case "wine":
+                    return "/placeholder-wine.jpg";
+                  case "accessory":
+                    return "/placeholder-accessory.jpg";
+                  case "gift":
+                    return "/placeholder-accessory.jpg";
+                  default:
+                    return "/placeholder-wine.jpg";
+                }
+              };
+
+              // Get product details based on type
+              const getProductDetails = () => {
+                switch (productType) {
+                  case "wine":
+                    return `${item.wine?.winery || ""} • ${
+                      item.wine?.country || ""
+                    } • ${item.wine?.year || ""}`;
+                  case "accessory":
+                    return `${item.accessory?.accessoryType || ""} • ${
+                      item.accessory?.brand || ""
+                    }`;
+                  case "gift":
+                    return `${
+                      item.gift?.giftType === "set"
+                        ? "Set quà"
+                        : item.gift?.giftType === "single"
+                        ? "1 chai"
+                        : "Combo"
+                    } • ${item.gift?.theme || ""}`;
+                  default:
+                    return "";
+                }
+              };
+
+              // Get product link
+              const getProductLink = () => {
+                switch (productType) {
+                  case "wine":
+                    return `/products/${product.id}`;
+                  case "accessory":
+                    return `/accessories/${product.id}`;
+                  case "gift":
+                    return `/gifts/${product.id}`;
+                  default:
+                    return `/products/${product.id}`;
+                }
+              };
 
               return (
                 <Card key={product.id}>
@@ -79,7 +140,7 @@ export default function CartPage() {
                     <div className="flex space-x-4">
                       <div className="relative w-24 h-32 flex-shrink-0">
                         <Image
-                          src={product.images[0]}
+                          src={getImageSrc()}
                           alt={product.name}
                           fill
                           className="object-cover rounded-md"
@@ -88,19 +149,13 @@ export default function CartPage() {
 
                       <div className="flex-1 min-w-0">
                         <Link
-                          href={`/${
-                            productType === "wine" ? "products" : "accessories"
-                          }/${product.id}`}
+                          href={getProductLink()}
                           className="text-lg font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-400 line-clamp-2"
                         >
                           {product.name}
                         </Link>
                         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                          {productType === "wine"
-                            ? `${item.wine?.winery} • ${item.wine?.country} • ${item.wine?.year}`
-                            : `${item.accessory?.accessoryType} • ${
-                                item.accessory?.brand || ""
-                              }`}
+                          {getProductDetails()}
                         </p>
                         <p className="text-lg font-bold text-red-600 dark:text-red-400 mt-2">
                           {formatPrice(product.price)}
@@ -156,7 +211,29 @@ export default function CartPage() {
             })}
 
             <div className="flex justify-between items-center pt-4">
-              <Link href="/products">
+              <Link
+                href={(() => {
+                  // Determine the best page to continue shopping based on cart contents
+                  const hasWines = state.items.some(
+                    (item) => item.productType === "wine"
+                  );
+                  const hasAccessories = state.items.some(
+                    (item) => item.productType === "accessory"
+                  );
+                  const hasGifts = state.items.some(
+                    (item) => item.productType === "gift"
+                  );
+
+                  if (hasWines && !hasAccessories && !hasGifts)
+                    return "/products";
+                  if (hasAccessories && !hasWines && !hasGifts)
+                    return "/accessories";
+                  if (hasGifts && !hasWines && !hasAccessories) return "/gifts";
+
+                  // If mixed or no items, default to products
+                  return "/products";
+                })()}
+              >
                 <Button variant="outline">Tiếp tục mua sắm</Button>
               </Link>
 

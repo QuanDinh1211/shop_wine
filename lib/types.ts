@@ -24,8 +24,9 @@ export interface Wine {
 export interface CartItem {
   wine?: Wine;
   accessory?: Accessory;
+  gift?: Gift;
   quantity: number;
-  productType: 'wine' | 'accessory';
+  productType: "wine" | "accessory" | "gift";
 }
 
 export interface User {
@@ -89,4 +90,20 @@ export interface Accessory {
   material: string | null;
   color: string | null;
   size: string | null;
+}
+
+export interface Gift {
+  id: string;
+  name: string;
+  price: number;
+  originalPrice: number | null;
+  description: string | null;
+  images: string[];
+  inStock: boolean;
+  featured: boolean;
+  giftType: "set" | "single" | "combo";
+  includeWine: boolean;
+  theme: string | null;
+  packaging: string | null;
+  items: string[]; // list of item names in the set
 }

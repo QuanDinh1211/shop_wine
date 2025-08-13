@@ -39,7 +39,7 @@ export default function AccessoriesPage() {
     setLoading(true);
     try {
       const params = new URLSearchParams({
-        limit: "50", // Tăng limit để có thể filter client-side
+        limit: "500", // Tăng limit để có thể filter client-side
       });
 
       if (appliedFilters) {
