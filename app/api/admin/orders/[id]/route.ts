@@ -212,3 +212,75 @@ export async function GET(
     if (connection) await connection.end();
   }
 }
+
+// Cập nhật trạng thái đơn hàng
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const token = getTokenFromRequest(request);
+  const decoded = token && verifyAdminToken(token);
+
+  if (!decoded) {
+    return NextResponse.json(
+      { error: "Bạn không có quyền truy cập" },
+      { status: 403 }
+    );
+  }
+
+  let connection;
+  try {
+    const body = await request.json();
+    const { status } = body;
+
+    // Xác thực trạng thái
+    const validStatuses = [
+      "pending",
+      "processing",
+      "shipped",
+      "delivered",
+      "cancelled",
+    ];
+    if (!status || !validStatuses.includes(status)) {
+      return NextResponse.json(
+        {
+          error:
+            "Trạng thái không hợp lệ. Phải là: pending, processing, shipped, delivered, hoặc cancelled",
+        },
+        { status: 400 }
+      );
+    }
+
+    connection = await getConnection();
+
+    // Kiểm tra đơn hàng tồn tại
+    const [existingRows] = await connection.execute(
+      "SELECT order_id FROM Orders WHERE order_id = ?",
+      [params.id]
+    );
+    if ((existingRows as any[]).length === 0) {
+      return NextResponse.json(
+        { error: "Không tìm thấy đơn hàng" },
+        { status: 404 }
+      );
+    }
+
+    // Cập nhật trạng thái
+    await connection.execute(
+      "UPDATE Orders SET status = ? WHERE order_id = ?",
+      [status, params.id]
+    );
+
+    return NextResponse.json({
+      message: "Cập nhật trạng thái đơn hàng thành công",
+    });
+  } catch (error) {
+    console.error("Lỗi khi cập nhật trạng thái đơn hàng:", error);
+    return NextResponse.json(
+      { error: "Lỗi hệ thống. Không thể cập nhật trạng thái đơn hàng." },
+      { status: 500 }
+    );
+  } finally {
+    if (connection) await connection.end();
+  }
+}

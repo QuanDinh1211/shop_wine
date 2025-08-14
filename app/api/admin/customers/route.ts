@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import mysql from "mysql2/promise";
-import { User, Order, CartItem, Wine } from "@/lib/admin/types";
+import { User, Order, CartItem } from "@/lib/admin/types";
 import { config } from "@/config/db";
 import { getTokenFromRequest, verifyAdminToken } from "@/lib/admin/auth";
 import { parseImages } from "@/lib/utils";
 
-// Kết nối cơ sở dữ liệu
+// DB connection helper
 async function getConnection() {
   return mysql.createConnection(config);
 }
 
-// Lấy danh sách khách hàng
 export async function GET(request: NextRequest) {
   const token = getTokenFromRequest(request);
   const decoded = token && verifyAdminToken(token);
@@ -25,6 +24,8 @@ export async function GET(request: NextRequest) {
   let connection;
   try {
     connection = await getConnection();
+
+    // Lấy danh sách khách hàng
     const [customerRows] = await connection.execute(`
       SELECT 
         id,
@@ -37,6 +38,7 @@ export async function GET(request: NextRequest) {
 
     const customerIds = (customerRows as any[]).map((row) => row.id);
     let orders: Order[] = [];
+
     if (customerIds.length > 0) {
       // Lấy danh sách đơn hàng
       const [orderRows] = await connection.execute(
@@ -62,13 +64,15 @@ export async function GET(request: NextRequest) {
 
       const orderIds = (orderRows as any[]).map((row) => row.id);
       let items: (CartItem & { order_id: string })[] = [];
+
       if (orderIds.length > 0) {
-        // Lấy danh sách OrderItems
+        // Lấy OrderItems
         const [itemRows] = await connection.execute(
           `
           SELECT 
             oi.order_id,
-            oi.wine_id,
+            oi.product_id,
+            oi.product_type,
             oi.quantity,
             oi.unit_price AS unitPrice
           FROM OrderItems oi
@@ -77,10 +81,18 @@ export async function GET(request: NextRequest) {
           orderIds
         );
 
-        // Lấy thông tin rượu
-        const wineIds = (itemRows as any[]).map((item) => item.wine_id);
+        // Gom ID theo loại sản phẩm
+        const productMap: Record<string, number[]> = {};
+        (itemRows as any[]).forEach((item) => {
+          if (!productMap[item.product_type])
+            productMap[item.product_type] = [];
+          productMap[item.product_type].push(item.product_id);
+        });
+
+        // Chi tiết sản phẩm wine
         let wineDetails: any[] = [];
-        if (wineIds.length > 0) {
+        if (productMap["wine"]?.length) {
+          const placeholders = productMap["wine"].map(() => "?").join(", ");
           const [wineRows] = await connection.execute(
             `
             SELECT 
@@ -113,54 +125,106 @@ export async function GET(request: NextRequest) {
             LEFT JOIN Grapes g ON wg.grape_id = g.grape_id
             LEFT JOIN WinePairings wp ON w.id = wp.wine_id
             LEFT JOIN Pairings p ON wp.pairing_id = p.pairing_id
-            WHERE w.id IN (${wineIds.map(() => "?").join(", ")})
+            WHERE w.id IN (${placeholders})
             GROUP BY w.id
             `,
-            wineIds
+            productMap["wine"]
           );
           wineDetails = wineRows as any[];
         }
 
-        // Kết hợp OrderItems với thông tin rượu
+        // Lấy chi tiết Gift
+        let giftDetails: any[] = [];
+        if (productMap["gift"]?.length) {
+          const giftPlaceholders = productMap["gift"].map(() => "?").join(", ");
+          const [giftRows] = await connection.execute(
+            `SELECT id, name, price, original_price AS originalPrice,
+                  description, images, theme, in_stock AS inStock, featured, gift_type AS giftType
+           FROM Gifts
+           WHERE id IN (${giftPlaceholders})`,
+            productMap["gift"]
+          );
+          giftDetails = giftRows as any[];
+        }
+
+        // Chi tiết sản phẩm accessory
+        let accessoryDetails: any[] = [];
+        if (productMap["accessory"]?.length) {
+          const placeholders = productMap["accessory"]
+            .map(() => "?")
+            .join(", ");
+          const [accRows] = await connection.execute(
+            `
+            SELECT 
+              a.id,
+              a.name,
+              a.price,
+              a.brand,
+              a.original_price AS originalPrice,
+              a.description,
+              a.images,
+              a.in_stock AS inStock,
+              a.featured,
+              a.accessory_type_id AS accessoryTypeId,
+              at.name AS accessoryTypeName
+            FROM Accessories a
+            LEFT JOIN AccessoryTypes at 
+              ON a.accessory_type_id = at.accessory_type_id
+            WHERE a.id IN (${placeholders})
+            `,
+            productMap["accessory"]
+          );
+          accessoryDetails = accRows as any[];
+        }
+
+        // Kết hợp OrderItems với thông tin sản phẩm
         items = (itemRows as any[])
           .map((item) => {
-            const wine = wineDetails.find((w) => w.id === item.wine_id);
-            if (!wine) return null;
+            let product: any = null;
+
+            if (item.product_type === "wine") {
+              const w = wineDetails.find((x) => x.id === item.product_id);
+              if (w) {
+                product = {
+                  ...w,
+                  images: parseImages(w.images),
+                  grapes: w.grapes ? w.grapes.split(",") : [],
+                  pairings: w.pairings ? w.pairings.split(",") : [],
+                };
+              }
+            }
+
+            if (item.product_type === "gift") {
+              const a = giftDetails.find((x) => x.id === item.product_id);
+              if (a) {
+                product = {
+                  ...a,
+                  images: parseImages(a.images),
+                };
+              }
+            }
+
+            if (item.product_type === "accessory") {
+              const a = accessoryDetails.find((x) => x.id === item.product_id);
+              if (a) {
+                product = {
+                  ...a,
+                  images: parseImages(a.images),
+                };
+              }
+            }
+
+            if (!product) return null;
+
             return {
               order_id: String(item.order_id),
-              wine: {
-                id: String(wine.id),
-                name: String(wine.name),
-                type: String(wine.type),
-                wineTypeId: Number(wine.wineTypeId),
-                country: String(wine.country),
-                countryId: Number(wine.countryId),
-                region: wine.region ? String(wine.region) : null,
-                year: wine.year ? Number(wine.year) : null,
-                price: Number(wine.price),
-                originalPrice: wine.originalPrice
-                  ? Number(wine.originalPrice)
-                  : null,
-                rating: wine.rating ? Number(wine.rating) : null,
-                reviews: Number(wine.reviews),
-                description: wine.description ? String(wine.description) : null,
-                images: parseImages(wine.images),
-                inStock: Boolean(wine.inStock),
-                featured: Boolean(wine.featured),
-                alcohol: wine.alcohol ? Number(wine.alcohol) : null,
-                volume: wine.volume ? Number(wine.volume) : null,
-                winery: wine.winery ? String(wine.winery) : null,
-                servingTemp: wine.servingTemp ? String(wine.servingTemp) : null,
-                grapes: wine.grapes ? wine.grapes.split(",") : [],
-                pairings: wine.pairings ? wine.pairings.split(",") : [],
-              },
+              productType: item.product_type,
+              [item.product_type]: product,
               quantity: Number(item.quantity),
               unitPrice: Number(item.unitPrice),
             };
           })
-          .filter(
-            (item): item is CartItem & { order_id: string } => item !== null
-          );
+          .filter((item) => item !== null);
       }
 
       // Kết hợp đơn hàng
@@ -190,6 +254,7 @@ export async function GET(request: NextRequest) {
       }));
     }
 
+    // Ghép customers + orders
     const customers: User[] = (customerRows as any[]).map((row) => ({
       id: String(row.id),
       email: String(row.email),

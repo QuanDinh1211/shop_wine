@@ -174,7 +174,7 @@ export default function TrangQuanLyKhachHang() {
                           </Button>
                         </DialogTrigger>
 
-                        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                        <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto">
                           <DialogHeader>
                             <DialogTitle>👤 Chi Tiết Khách Hàng</DialogTitle>
                             <DialogDescription>
@@ -258,29 +258,58 @@ export default function TrangQuanLyKhachHang() {
                                             <TableCell>
                                               <div className="flex flex-col gap-1">
                                                 {order.items.map(
-                                                  (item, index) => (
-                                                    <div
-                                                      key={index}
-                                                      className="flex items-center space-x-2"
-                                                    >
-                                                      <div className="relative h-8 w-8 rounded overflow-hidden">
-                                                        <Image
-                                                          src={
-                                                            item.wine
-                                                              .images[0] ||
-                                                            "/placeholder-wine.jpg"
-                                                          }
-                                                          alt={item.wine.name}
-                                                          fill
-                                                          className="object-cover"
-                                                        />
+                                                  (item, index) => {
+                                                    let name = "";
+                                                    let images: string[] = [];
+
+                                                    if (
+                                                      item.productType ===
+                                                        "wine" &&
+                                                      item.wine
+                                                    ) {
+                                                      name = item.wine.name;
+                                                      images = item.wine.images;
+                                                    } else if (
+                                                      item.productType ===
+                                                        "gift" &&
+                                                      item.gift
+                                                    ) {
+                                                      name = item.gift.name;
+                                                      images = item.gift.images;
+                                                    } else if (
+                                                      item.productType ===
+                                                        "accessory" &&
+                                                      item.accessory
+                                                    ) {
+                                                      name =
+                                                        item.accessory.name;
+                                                      images =
+                                                        item.accessory.images;
+                                                    }
+
+                                                    return (
+                                                      <div
+                                                        key={index}
+                                                        className="flex items-center space-x-2"
+                                                      >
+                                                        <div className="relative h-8 w-8 rounded overflow-hidden">
+                                                          <Image
+                                                            src={
+                                                              images[0] ||
+                                                              "/placeholder-wine.jpg"
+                                                            }
+                                                            alt={name}
+                                                            fill
+                                                            className="object-cover"
+                                                          />
+                                                        </div>
+                                                        <span>
+                                                          {name} (x
+                                                          {item.quantity})
+                                                        </span>
                                                       </div>
-                                                      <span>
-                                                        {item.wine.name} (x
-                                                        {item.quantity})
-                                                      </span>
-                                                    </div>
-                                                  )
+                                                    );
+                                                  }
                                                 )}
                                               </div>
                                             </TableCell>
