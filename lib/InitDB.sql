@@ -156,7 +156,7 @@ CREATE TABLE OrderItems (
     order_id INT NOT NULL,
     wine_id VARCHAR(50) NULL, -- giữ để code cũ không lỗi
     product_id VARCHAR(50) NOT NULL,
-    product_type ENUM('wine', 'accessory', 'gifts') DEFAULT 'wine',
+    product_type ENUM('wine', 'accessory', 'gift') DEFAULT 'wine',
     quantity INT NOT NULL,
     unit_price DECIMAL(15, 2) NOT NULL,
     FOREIGN KEY (order_id) REFERENCES Orders(order_id),
