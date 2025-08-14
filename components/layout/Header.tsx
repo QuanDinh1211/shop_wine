@@ -332,6 +332,15 @@ export default function Header() {
                       {label}
                     </Link>
                   ))}
+                  <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
+                    <Link
+                      href="/products"
+                      onClick={handleLinkClick}
+                      className="block py-2 text-sm font-medium text-red-700 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
+                    >
+                      Xem tất cả rượu vang
+                    </Link>
+                  </div>
                 </div>
               )}
             </div>
@@ -371,6 +380,15 @@ export default function Header() {
                       {label}
                     </Link>
                   ))}
+                  <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
+                    <Link
+                      href="/accessories"
+                      onClick={handleLinkClick}
+                      className="block py-2 text-sm font-medium text-red-700 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
+                    >
+                      Xem tất cả phụ kiện
+                    </Link>
+                  </div>
                 </div>
               )}
             </div>
@@ -404,6 +422,14 @@ export default function Header() {
                             {label}
                           </Link>
                         ))}
+                        <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
+                          <Link
+                            href="/products"
+                            className="block px-3 py-2 rounded-md text-sm font-medium text-red-700 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-red-800 dark:hover:text-red-300"
+                          >
+                            Xem tất cả rượu vang
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -440,6 +466,14 @@ export default function Header() {
                             {label}
                           </Link>
                         ))}
+                        <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
+                          <Link
+                            href="/accessories"
+                            className="block px-3 py-2 rounded-md text-sm font-medium text-red-700 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-red-800 dark:hover:text-red-300"
+                          >
+                            Xem tất cả phụ kiện
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   </div>
