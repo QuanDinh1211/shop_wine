@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { ReactNode } from 'react';
-import Sidebar from './Sidebar';
-import Header from './Header';
+import { ReactNode } from "react";
+import Sidebar from "./Sidebar";
+import Header from "./Header";
 
 interface AdminLayoutProps {
   children: ReactNode;
-  title: string;
+  title?: string;
 }
 
 export default function AdminLayout({ children, title }: AdminLayoutProps) {
@@ -14,10 +14,8 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title={title} />
-        <main className="flex-1 overflow-auto p-6">
-          {children}
-        </main>
+        <Header title={title || ""} />
+        <main className="flex-1 overflow-auto p-6">{children}</main>
       </div>
     </div>
   );

@@ -24,6 +24,24 @@ export interface Wine {
   pairings: string[]; // từ WinePairings + Pairings.name
 }
 
+// Gift hiển thị cho admin
+export interface Gift {
+  id: string;
+  name: string;
+  price: number;
+  originalPrice: number | null;
+  description: string | null;
+  images: string[];
+  inStock: boolean;
+  featured: boolean;
+  giftType: "set" | "single" | "combo";
+  includeWine: boolean;
+  theme: string | null;
+  packaging: string | null;
+  items: string[];
+  createdAt: string;
+}
+
 // Dữ liệu tạo/cập nhật rượu cho form admin
 export interface WineFormData {
   name: string;
@@ -37,6 +55,22 @@ export interface WineFormData {
   images: string[];
   grape_ids: number[];
   pairing_ids: number[];
+}
+
+// Dữ liệu tạo/cập nhật quà tặng cho form admin
+export interface GiftFormData {
+  name: string;
+  description: string;
+  price: string;
+  originalPrice: string;
+  giftType: "set" | "single" | "combo";
+  includeWine: boolean;
+  theme: string;
+  packaging: string;
+  images: string[];
+  items: string[];
+  inStock: boolean;
+  featured: boolean;
 }
 
 // Các mục danh mục chung (dùng cho dropdown hoặc quản lý)
