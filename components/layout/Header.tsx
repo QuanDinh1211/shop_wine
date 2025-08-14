@@ -142,29 +142,6 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Search handler
-  const handleSearch = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-      const trimmedSearch = searchTerm.trim();
-
-      if (!trimmedSearch) return;
-
-      setIsSearching(true);
-      try {
-        await router.push(
-          `/products?search=${encodeURIComponent(trimmedSearch)}`
-        );
-        setMobileMenuOpen(false);
-      } catch (error) {
-        console.error("Search navigation error:", error);
-      } finally {
-        setIsSearching(false);
-      }
-    },
-    [searchTerm, router]
-  );
-
   // Search button handler
   const handleSearchClick = useCallback(async () => {
     const trimmedSearch = searchTerm.trim();
@@ -173,7 +150,7 @@ export default function Header() {
     setIsSearching(true);
     try {
       await router.push(
-        `/products?search=${encodeURIComponent(trimmedSearch)}`
+        `/all-products?search=${encodeURIComponent(trimmedSearch)}`
       );
       setMobileMenuOpen(false);
       setSearchTerm("");

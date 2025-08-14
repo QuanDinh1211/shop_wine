@@ -3,12 +3,10 @@ import mysql from "mysql2/promise";
 import { config } from "@/config/db";
 import { parseImages } from "@/lib/utils";
 
-// Kết nối cơ sở dữ liệu
 async function getConnection() {
   return mysql.createConnection(config);
 }
 
-// Lấy tất cả sản phẩm (rượu vang, phụ kiện, quà tặng) với phân trang và tìm kiếm
 export async function GET(request: NextRequest) {
   let connection;
   try {
@@ -32,118 +30,123 @@ export async function GET(request: NextRequest) {
 
     connection = await getConnection();
 
-    // Xây dựng query cho từng loại sản phẩm
+    let params: any[] = [];
+
+    // WHERE cho từng bảng (chỉ filter search ở trong query con)
+    let wineWhere = "";
+    let accessoryWhere = "";
+    let giftWhere = "";
+
+    // if (search) {
+    //   wineWhere += "WHERE w.name LIKE ?";
+    //   accessoryWhere += "WHERE a.name LIKE ?";
+    //   giftWhere += "WHERE g.name LIKE ?";
+    //   params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+    // }
+
     const wineQuery = `
-       SELECT 
-         w.id,
-         w.name,
-         w.price,
-         w.original_price as originalPrice,
-         w.description,
-         w.rating,
-         w.images,
-         w.in_stock as inStock,
-         w.featured,
-         'wine' as category,
-         wt.name as type,
-         c.name as country,
-         w.year,
-         w.region,
-         w.alcohol,
-         w.volume,
-         w.winery,
-         NULL as grapes
-       FROM Wines w
-       LEFT JOIN WineTypes wt ON w.wine_type_id = wt.wine_type_id
-       LEFT JOIN Countries c ON w.country_id = c.country_id
-     `;
+      SELECT 
+        w.id,
+        w.name,
+        w.price,
+        w.original_price AS originalPrice,
+        w.description,
+        w.rating,
+        w.images,
+        w.in_stock AS inStock,
+        w.featured,
+        'wine' AS category,
+        wt.name AS type,
+        c.name AS country,
+        w.year,
+        w.region,
+        w.alcohol,
+        w.volume,
+        w.winery,
+        NULL AS grapes,
+        NULL AS brand
+      FROM Wines w
+      LEFT JOIN WineTypes wt ON w.wine_type_id = wt.wine_type_id
+      LEFT JOIN Countries c ON w.country_id = c.country_id
+      ${wineWhere}
+    `;
 
     const accessoryQuery = `
-       SELECT 
-         a.id,
-         a.name,
-         a.price,
-         a.original_price as originalPrice,
-         a.description,
-         NULL as rating,
-         a.images,
-         a.in_stock as inStock,
-         a.featured,
-         'accessory' as category,
-         at.name as type,
-         NULL as country,
-         NULL as year,
-         NULL as region,
-         NULL as alcohol,
-         NULL as volume,
-         a.brand,
-         NULL as grapes
-       FROM Accessories a
-       LEFT JOIN AccessoryTypes at ON a.accessory_type_id = at.accessory_type_id
-     `;
+      SELECT 
+        a.id,
+        a.name,
+        a.price,
+        a.original_price AS originalPrice,
+        a.description,
+        NULL AS rating,
+        a.images,
+        a.in_stock AS inStock,
+        a.featured,
+        'accessory' AS category,
+        at.name AS type,
+        NULL AS country,
+        NULL AS year,
+        NULL AS region,
+        NULL AS alcohol,
+        NULL AS volume,
+        NULL AS winery,
+        NULL AS grapes,
+        a.brand
+      FROM Accessories a
+      LEFT JOIN AccessoryTypes at ON a.accessory_type_id = at.accessory_type_id
+      ${accessoryWhere}
+    `;
 
     const giftQuery = `
-       SELECT 
-         g.id,
-         g.name,
-         g.price,
-         g.original_price as originalPrice,
-         g.description,
-         NULL as rating,
-         g.images,
-         g.in_stock as inStock,
-         g.featured,
-         'gift' as category,
-         g.gift_type as type,
-         NULL as country,
-         NULL as year,
-         NULL as region,
-         NULL as alcohol,
-         NULL as volume,
-         NULL as brand,
-         NULL as grapes
-       FROM Gifts g
-     `;
-
-    // Xây dựng điều kiện WHERE
-    let whereConditions: string[] = [];
-    let queryParams: any[] = [];
-
-    if (search) {
-      whereConditions.push("name LIKE ?");
-      queryParams.push(`%${search}%`);
-    }
-
-    if (category && category !== "all") {
-      whereConditions.push("category = ?");
-      queryParams.push(category);
-    }
-
-    const whereClause =
-      whereConditions.length > 0
-        ? `WHERE ${whereConditions.join(" AND ")}`
-        : "";
-
-    // Query tổng hợp
-    const unionQuery = `
-      ${wineQuery} ${whereClause}
-      UNION ALL
-      ${accessoryQuery} ${whereClause}
-      UNION ALL
-      ${giftQuery} ${whereClause}
+      SELECT 
+        g.id,
+        g.name,
+        g.price,
+        g.original_price AS originalPrice,
+        g.description,
+        NULL AS rating,
+        g.images,
+        g.in_stock AS inStock,
+        g.featured,
+        'gift' AS category,
+        g.gift_type AS type,
+        NULL AS country,
+        NULL AS year,
+        NULL AS region,
+        NULL AS alcohol,
+        NULL AS volume,
+        NULL AS winery,
+        NULL AS grapes,
+        NULL AS brand
+      FROM Gifts g
+      ${giftWhere}
     `;
+
+    // UNION ALL
+    let unionQuery = `
+      ${wineQuery}
+      UNION ALL
+      ${accessoryQuery}
+      UNION ALL
+      ${giftQuery}
+    `;
+
+    // Lọc category ở ngoài
+    if (category && category !== "all") {
+      unionQuery = `SELECT * FROM (${unionQuery}) AS combined WHERE category = ?`;
+      params.push(category);
+    } else {
+      unionQuery = `SELECT * FROM (${unionQuery}) AS combined`;
+    }
 
     // Đếm tổng số sản phẩm
     const countQuery = `
-      SELECT COUNT(*) as total FROM (
-        ${unionQuery}
-      ) as combined_products
+      SELECT COUNT(*) AS total FROM (${unionQuery}) AS total_products
     `;
-
-    const [countRows] = await connection.execute(countQuery, queryParams);
+    const [countRows] = await connection.execute(countQuery, params);
     const total = (countRows as any[])[0].total;
 
-    // Query chính với sắp xếp và phân trang
+    // Sắp xếp
     let orderClause = "";
     switch (sortBy) {
       case "name-asc":
@@ -159,7 +162,7 @@ export async function GET(request: NextRequest) {
         orderClause = "ORDER BY price DESC";
         break;
       case "rating-desc":
-        orderClause = "ORDER BY rating DESC NULLS LAST";
+        orderClause = "ORDER BY rating DESC";
         break;
       case "newest":
         orderClause = "ORDER BY featured DESC, name ASC";
@@ -168,15 +171,13 @@ export async function GET(request: NextRequest) {
         orderClause = "ORDER BY name ASC";
     }
 
+    // Query chính
     const selectQuery = `
-      SELECT * FROM (
-        ${unionQuery}
-      ) as combined_products
+      ${unionQuery}
       ${orderClause}
       LIMIT ${safeLimit} OFFSET ${safeOffset}
     `;
-
-    const [rows] = await connection.execute(selectQuery, queryParams);
+    const [rows] = await connection.execute(selectQuery, params);
 
     // Chuyển đổi dữ liệu
     const products = (rows as any[]).map((row) => ({
@@ -196,8 +197,9 @@ export async function GET(request: NextRequest) {
       region: row.region ? String(row.region) : null,
       alcohol: row.alcohol ? parseFloat(row.alcohol) : null,
       volume: row.volume ? Number(row.volume) : null,
+      winery: row.winery ? String(row.winery) : null,
       brand: row.brand ? String(row.brand) : null,
-      grapes: [], // Sẽ được cập nhật sau
+      grapes: [],
     }));
 
     // Lấy grapes cho rượu vang
@@ -207,30 +209,37 @@ export async function GET(request: NextRequest) {
 
     if (wineIds.length > 0) {
       const grapesQuery = `
-         SELECT 
-           wg.wine_id,
-           GROUP_CONCAT(DISTINCT g.name) AS grapes
-         FROM WineGrapes wg
-         LEFT JOIN Grapes g ON wg.grape_id = g.grape_id
-         WHERE wg.wine_id IN (${wineIds.map(() => "?").join(",")})
-         GROUP BY wg.wine_id
-       `;
-
+        SELECT 
+          wg.wine_id,
+          GROUP_CONCAT(DISTINCT g.name) AS grapes
+        FROM WineGrapes wg
+        LEFT JOIN Grapes g ON wg.grape_id = g.grape_id
+        WHERE wg.wine_id IN (${wineIds.map(() => "?").join(",")})
+        GROUP BY wg.wine_id
+      `;
       const [grapesRows] = await connection.execute(grapesQuery, wineIds);
       const grapesMap = new Map();
-
       (grapesRows as any[]).forEach((row) => {
         grapesMap.set(
           String(row.wine_id),
           row.grapes ? row.grapes.split(",") : []
         );
       });
-
-      // Cập nhật grapes cho từng sản phẩm rượu vang
       products.forEach((product) => {
         if (product.category === "wine") {
           product.grapes = grapesMap.get(product.id) || [];
         }
+      });
+    }
+
+    if (search) {
+      const keyword = search.toLowerCase();
+      products.sort((a, b) => {
+        const aMatch = a.name.toLowerCase().includes(keyword);
+        const bMatch = b.name.toLowerCase().includes(keyword);
+        if (aMatch && !bMatch) return -1;
+        if (!aMatch && bMatch) return 1;
+        return 0;
       });
     }
 

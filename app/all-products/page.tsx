@@ -85,10 +85,12 @@ const SORT_OPTIONS = [
 
 export default function AllProductsPage() {
   const searchParams = useSearchParams();
+  const defaultSearch = searchParams.get("search") || "";
+
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(defaultSearch);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("name-asc");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
