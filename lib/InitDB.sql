@@ -1,26 +1,4 @@
--- ==============================
--- Bảng Gifts (quà tặng rượu vang)
--- ==============================
-CREATE TABLE IF NOT EXISTS Gifts (
-  id VARCHAR(50) PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  price DECIMAL(15, 2) NOT NULL,
-  original_price DECIMAL(15, 2),
-  description TEXT,
-  images JSON,
-  in_stock TINYINT(1) DEFAULT 1,
-  featured TINYINT(1) DEFAULT 0,
-  gift_type ENUM('set','single','combo') DEFAULT 'set',
-  include_wine TINYINT(1) DEFAULT 0,
-  theme VARCHAR(100),
-  packaging VARCHAR(100),
-  items JSON,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
 
--- Cập nhật OrderItems cho product_type có 'gift'
--- Lưu ý: có thể cần điều chỉnh theo cú pháp MySQL/MariaDB phiên bản đang dùng
--- ALTER TABLE OrderItems MODIFY product_type ENUM('wine','accessory','gift') DEFAULT 'wine';
 -- ==============================
 -- Tạo database
 -- ==============================
@@ -41,6 +19,26 @@ CREATE TABLE Countries (
 CREATE TABLE WineTypes (
     wine_type_id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(50) NOT NULL UNIQUE
+);
+
+-- ==============================
+-- Bảng Gifts (quà tặng rượu vang)
+-- ==============================
+CREATE TABLE IF NOT EXISTS Gifts (
+  id VARCHAR(50) PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  price DECIMAL(15, 2) NOT NULL,
+  original_price DECIMAL(15, 2),
+  description TEXT,
+  images JSON,
+  in_stock TINYINT(1) DEFAULT 1,
+  featured TINYINT(1) DEFAULT 0,
+  gift_type ENUM('set','single','combo') DEFAULT 'set',
+  include_wine TINYINT(1) DEFAULT 0,
+  theme VARCHAR(100),
+  packaging VARCHAR(100),
+  items JSON,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ==============================
