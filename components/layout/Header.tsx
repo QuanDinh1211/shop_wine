@@ -163,6 +163,8 @@ export default function Header() {
 
   // Link click handler
   const handleLinkClick = useCallback(() => {
+    setMobileProductsOpen(false);
+    setMobileAccessoriesOpen(false);
     setMobileMenuOpen(false);
   }, []);
 
