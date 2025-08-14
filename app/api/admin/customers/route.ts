@@ -179,7 +179,7 @@ export async function GET(request: NextRequest) {
 
         // Kết hợp OrderItems với thông tin sản phẩm
         items = (itemRows as any[])
-          .map((item) => {
+          .map<(CartItem & { order_id: string }) | null>((item) => {
             let product: any = null;
 
             if (item.product_type === "wine") {
@@ -224,7 +224,9 @@ export async function GET(request: NextRequest) {
               unitPrice: Number(item.unitPrice),
             };
           })
-          .filter((item) => item !== null);
+          .filter(
+            (item): item is CartItem & { order_id: string } => item !== null
+          );
       }
 
       // Kết hợp đơn hàng

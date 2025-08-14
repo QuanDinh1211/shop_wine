@@ -190,7 +190,7 @@ export async function GET(request: NextRequest) {
 
       // Gộp dữ liệu item + chi tiết sản phẩm
       items = (itemRows as any[])
-        .map((item) => {
+        .map<(CartItem & { order_id: string }) | null>((item) => {
           const details = productDetails[item.product_type]?.find(
             (p) => String(p.id) === String(item.product_id)
           );
@@ -207,7 +207,7 @@ export async function GET(request: NextRequest) {
             unitPrice: item.unitPrice,
           };
         })
-        .filter((i) => i !== null);
+        .filter((i): i is CartItem & { order_id: string } => i !== null);
     }
 
     // Gắn items vào từng đơn hàng
