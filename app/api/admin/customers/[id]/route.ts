@@ -184,7 +184,7 @@ export async function GET(
           return {
             order_id: String(item.order_id),
             productType: item.product_type,
-            product: {
+            [item.product_type]: {
               ...detail,
               images: parseImages(detail.images),
             },
