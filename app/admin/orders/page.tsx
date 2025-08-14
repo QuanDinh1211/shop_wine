@@ -361,52 +361,86 @@ export default function TrangQuanLyDonHang() {
                                     Sản phẩm đã đặt
                                   </h3>
                                   <div className="space-y-4">
-                                    {order.items.map((item, index) => (
-                                      <div
-                                        key={index}
-                                        className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg"
-                                      >
-                                        <div className="relative w-16 h-20 rounded overflow-hidden bg-gray-100">
-                                          <Image
-                                            src={
-                                              item.wine.images[0] ||
-                                              "/placeholder-wine.jpg"
-                                            }
-                                            alt={item.wine.name}
-                                            fill
-                                            className="object-cover"
-                                          />
+                                    {order.items.map((item, index) => {
+                                      let name = "";
+                                      let subInfo = "";
+                                      let images: string[] = [];
+
+                                      if (
+                                        item.productType === "wine" &&
+                                        item.wine
+                                      ) {
+                                        name = item.wine.name;
+                                        subInfo = `${item.wine.winery} • ${item.wine.country} • ${item.wine.year}`;
+                                        images = item.wine.images;
+                                      } else if (
+                                        item.productType === "gift" &&
+                                        item.gift
+                                      ) {
+                                        name = item.gift.name;
+                                        subInfo = `${
+                                          item.gift.giftType === "set"
+                                            ? "Set quà"
+                                            : item.gift.giftType === "single"
+                                            ? "1 chai"
+                                            : "Combo"
+                                        } • ${item.gift.theme || ""}`;
+                                        images = item.gift.images;
+                                      } else if (
+                                        item.productType === "accessory" &&
+                                        item.accessory
+                                      ) {
+                                        name = item.accessory.name;
+                                        subInfo = `${
+                                          item.accessory.accessoryType
+                                        } • ${item.accessory.brand || ""}`;
+                                        images = item.accessory.images;
+                                      }
+
+                                      return (
+                                        <div
+                                          key={index}
+                                          className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg"
+                                        >
+                                          <div className="relative w-16 h-20 rounded overflow-hidden bg-gray-100">
+                                            <Image
+                                              src={
+                                                images[0] || "/placeholder.jpg"
+                                              }
+                                              alt={name}
+                                              fill
+                                              className="object-cover"
+                                            />
+                                          </div>
+                                          <div className="flex-1">
+                                            <h4 className="font-semibold text-gray-900">
+                                              {name}
+                                            </h4>
+                                            <p className="text-sm text-gray-600">
+                                              {subInfo}
+                                            </p>
+                                            <p className="text-sm text-gray-600">
+                                              Số lượng: {item.quantity}
+                                            </p>
+                                          </div>
+                                          <div className="text-right">
+                                            <p className="font-semibold text-gray-900">
+                                              {item.unitPrice.toLocaleString(
+                                                "vi-VN"
+                                              )}
+                                              ₫
+                                            </p>
+                                            <p className="text-sm text-gray-600">
+                                              Tổng:{" "}
+                                              {(
+                                                item.unitPrice * item.quantity
+                                              ).toLocaleString("vi-VN")}
+                                              ₫
+                                            </p>
+                                          </div>
                                         </div>
-                                        <div className="flex-1">
-                                          <h4 className="font-semibold text-gray-900">
-                                            {item.wine.name}
-                                          </h4>
-                                          <p className="text-sm text-gray-600">
-                                            {item.wine.winery} •{" "}
-                                            {item.wine.country} •{" "}
-                                            {item.wine.year}
-                                          </p>
-                                          <p className="text-sm text-gray-600">
-                                            Số lượng: {item.quantity}
-                                          </p>
-                                        </div>
-                                        <div className="text-right">
-                                          <p className="font-semibold text-gray-900">
-                                            {item.unitPrice.toLocaleString(
-                                              "vi-VN"
-                                            )}
-                                            ₫
-                                          </p>
-                                          <p className="text-sm text-gray-600">
-                                            Tổng:{" "}
-                                            {(
-                                              item.unitPrice * item.quantity
-                                            ).toLocaleString("vi-VN")}
-                                            ₫
-                                          </p>
-                                        </div>
-                                      </div>
-                                    ))}
+                                      );
+                                    })}
                                   </div>
                                 </div>
 

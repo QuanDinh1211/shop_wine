@@ -94,11 +94,30 @@ export interface Pairing {
   name: string;
 }
 
-// Dùng trong giỏ hàng
+export interface Accessory {
+  id: string;
+  name: string;
+  accessoryTypeId: number;
+  accessoryType: string;
+  price: number;
+  originalPrice: number | null;
+  description: string | null;
+  images: string[];
+  inStock: boolean;
+  featured: boolean;
+  brand: string | null;
+  material: string | null;
+  color: string | null;
+  size: string | null;
+}
+
 export interface CartItem {
-  wine: Wine;
+  wine?: Wine;
+  accessory?: Accessory;
+  gift?: Gift;
   quantity: number;
   unitPrice: number;
+  productType: "wine" | "accessory" | "gift";
 }
 
 // Đơn hàng
@@ -172,12 +191,6 @@ export interface Wine {
   servingTemp: string | null;
   grapes: string[];
   pairings: string[];
-}
-
-export interface CartItem {
-  wine: Wine;
-  quantity: number;
-  unitPrice: number;
 }
 
 export interface User {

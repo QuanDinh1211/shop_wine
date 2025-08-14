@@ -36,7 +36,6 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // Đảm bảo limit và offset là số nguyên
   const safeLimit = Math.floor(limit);
   const safeOffset = Math.floor(offset);
 
@@ -58,7 +57,7 @@ export async function GET(request: NextRequest) {
       params.push(`%${customerName}%`, `%${customerName}%`);
     }
 
-    if (status && status != "all") {
+    if (status && status !== "all") {
       where.push("o.status = ?");
       params.push(status);
     }
@@ -96,8 +95,7 @@ export async function GET(request: NextRequest) {
        LEFT JOIN Customers c ON o.customer_id = c.id
        ${whereClause}
        ORDER BY o.order_date DESC
-       LIMIT ${safeLimit} OFFSET ${safeOffset}
-       `,
+       LIMIT ${safeLimit} OFFSET ${safeOffset}`,
       [...params]
     );
 
@@ -107,17 +105,26 @@ export async function GET(request: NextRequest) {
     if (orderIds.length > 0) {
       const placeholders = orderIds.map(() => "?").join(", ");
       const [itemRows] = await connection.execute(
-        `SELECT order_id, wine_id, quantity, unit_price AS unitPrice
+        `SELECT order_id, product_type, product_id, quantity, unit_price AS unitPrice
          FROM OrderItems
          WHERE order_id IN (${placeholders})`,
         orderIds
       );
 
-      const wineIds = (itemRows as any[]).map((i) => i.wine_id);
-      let wineDetails: any[] = [];
+      // Gom product_id theo product_type
+      const productMap: Record<string, any[]> = {};
+      (itemRows as any[]).forEach((i) => {
+        if (!productMap[i.product_type]) {
+          productMap[i.product_type] = [];
+        }
+        productMap[i.product_type].push(i.product_id);
+      });
 
-      if (wineIds.length > 0) {
-        const winePlaceholders = wineIds.map(() => "?").join(", ");
+      const productDetails: Record<string, any[]> = {};
+
+      // Lấy chi tiết Wine
+      if (productMap["wine"]?.length) {
+        const winePlaceholders = productMap["wine"].map(() => "?").join(", ");
         const [wineRows] = await connection.execute(
           `SELECT 
              w.id, w.name, wt.name AS type, w.wine_type_id AS wineTypeId,
@@ -136,48 +143,74 @@ export async function GET(request: NextRequest) {
            LEFT JOIN Pairings p ON wp.pairing_id = p.pairing_id
            WHERE w.id IN (${winePlaceholders})
            GROUP BY w.id`,
-          wineIds
+          productMap["wine"]
         );
-        wineDetails = wineRows as any[];
+        productDetails["wine"] = wineRows as any[];
       }
 
+      // Lấy chi tiết Gift
+      if (productMap["gift"]?.length) {
+        const giftPlaceholders = productMap["gift"].map(() => "?").join(", ");
+        const [giftRows] = await connection.execute(
+          `SELECT id, name, price, original_price AS originalPrice,
+                  description, images, theme, in_stock AS inStock, featured, gift_type AS giftType
+           FROM Gifts
+           WHERE id IN (${giftPlaceholders})`,
+          productMap["gift"]
+        );
+        productDetails["gift"] = giftRows as any[];
+      }
+
+      // Lấy chi tiết Accessory
+      if (productMap["accessory"]?.length) {
+        const accPlaceholders = productMap["accessory"]
+          .map(() => "?")
+          .join(", ");
+        const [accRows] = await connection.execute(
+          `SELECT 
+            a.id,
+            a.name,
+            a.brand,
+            a.price,
+            a.original_price AS originalPrice,
+            a.description,
+            a.images,
+            a.in_stock AS inStock,
+            a.featured,
+            a.accessory_type_id AS accessoryTypeId,
+            at.name AS accessoryType
+          FROM Accessories a
+          LEFT JOIN AccessoryTypes at 
+            ON a.accessory_type_id = at.accessory_type_id
+          WHERE a.id IN (${accPlaceholders})`,
+          productMap["accessory"]
+        );
+        productDetails["accessory"] = accRows as any[];
+      }
+
+      // Gộp dữ liệu item + chi tiết sản phẩm
       items = (itemRows as any[])
         .map((item) => {
-          const wine = wineDetails.find((w) => w.id === item.wine_id);
-          if (!wine) return null;
+          const details = productDetails[item.product_type]?.find(
+            (p) => String(p.id) === String(item.product_id)
+          );
+          if (!details) return null;
+
           return {
             order_id: String(item.order_id),
-            wine: {
-              id: String(wine.id),
-              name: wine.name,
-              type: wine.type,
-              wineTypeId: wine.wineTypeId,
-              country: wine.country,
-              countryId: wine.countryId,
-              region: wine.region,
-              year: wine.year,
-              price: wine.price,
-              originalPrice: wine.originalPrice,
-              rating: wine.rating,
-              reviews: wine.reviews,
-              description: wine.description,
-              images: parseImages(wine.images),
-              inStock: Boolean(wine.inStock),
-              featured: Boolean(wine.featured),
-              alcohol: wine.alcohol,
-              volume: wine.volume,
-              winery: wine.winery,
-              servingTemp: wine.servingTemp,
-              grapes: wine.grapes?.split(",") || [],
-              pairings: wine.pairings?.split(",") || [],
+            productType: item.product_type,
+            [item.product_type]: {
+              ...details,
+              images: parseImages(details.images),
             },
             quantity: item.quantity,
             unitPrice: item.unitPrice,
           };
         })
-        .filter((i): i is CartItem & { order_id: string } => i !== null);
+        .filter((i) => i !== null);
     }
 
+    // Gắn items vào từng đơn hàng
     const orders: Order[] = (orderRows as any[]).map((row) => ({
       id: String(row.id),
       orderCode: row.order_code,

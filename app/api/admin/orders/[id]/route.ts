@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import mysql from "mysql2/promise";
-import { CartItem, Order, Wine } from "@/lib/admin/types";
+import { CartItem, Order } from "@/lib/admin/types";
 import { config } from "@/config/db";
 import { getTokenFromRequest, verifyAdminToken } from "@/lib/admin/auth";
 import { parseImages } from "@/lib/utils";
 
-// Kết nối cơ sở dữ liệu
+// Kết nối DB
 async function getConnection() {
   return mysql.createConnection(config);
 }
 
-// Lấy chi tiết đơn hàng theo ID
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -28,6 +27,8 @@ export async function GET(
   let connection;
   try {
     connection = await getConnection();
+
+    // Lấy thông tin đơn hàng
     const [orderRows] = await connection.execute(
       `
       SELECT 
@@ -59,12 +60,13 @@ export async function GET(
       );
     }
 
-    // Lấy danh sách OrderItems
+    // Lấy OrderItems (đã dùng product_type + product_id)
     const [itemRows] = await connection.execute(
       `
       SELECT 
         oi.order_id,
-        oi.wine_id,
+        oi.product_type,
+        oi.product_id,
         oi.quantity,
         oi.unit_price AS unitPrice
       FROM OrderItems oi
@@ -73,10 +75,34 @@ export async function GET(
       [params.id]
     );
 
-    // Lấy thông tin rượu
-    const wineIds = (itemRows as any[]).map((item) => item.wine_id);
-    let items: CartItem[] = [];
-    if (wineIds.length > 0) {
+    type OrderItemRow = {
+      order_id: string;
+      product_type: "wine" | "gift" | "accessory";
+      product_id: number;
+      quantity: number;
+      unitPrice: number;
+    };
+
+    const itemsData = itemRows as OrderItemRow[];
+
+    // Gom ID theo loại
+    const productIds: Record<string, number[]> = {
+      wine: [],
+      gift: [],
+      accessory: [],
+    };
+    itemsData.forEach((item) => {
+      productIds[item.product_type].push(item.product_id);
+    });
+
+    // Lấy dữ liệu từng loại
+    const productDetails: Record<string, any[]> = {
+      wine: [],
+      gift: [],
+      accessory: [],
+    };
+
+    if (productIds.wine.length) {
       const [wineRows] = await connection.execute(
         `
         SELECT 
@@ -109,50 +135,53 @@ export async function GET(
         LEFT JOIN Grapes g ON wg.grape_id = g.grape_id
         LEFT JOIN WinePairings wp ON w.id = wp.wine_id
         LEFT JOIN Pairings p ON wp.pairing_id = p.pairing_id
-        WHERE w.id IN (${wineIds.map(() => "?").join(", ")})
+        WHERE w.id IN (${productIds.wine.map(() => "?").join(", ")})
         GROUP BY w.id
         `,
-        wineIds
+        productIds.wine
       );
-
-      const wineDetails = wineRows as any[];
-      items = (itemRows as any[])
-        .map((item) => {
-          const wine = wineDetails.find((w) => w.id === item.wine_id);
-          if (!wine) return null; // Bỏ qua nếu không tìm thấy rượu
-          return {
-            wine: {
-              id: String(wine.id),
-              name: String(wine.name),
-              type: String(wine.type),
-              wineTypeId: Number(wine.wineTypeId),
-              country: String(wine.country),
-              countryId: Number(wine.countryId),
-              region: wine.region ? String(wine.region) : null,
-              year: wine.year ? Number(wine.year) : null,
-              price: Number(wine.price),
-              originalPrice: wine.originalPrice
-                ? Number(wine.originalPrice)
-                : null,
-              rating: wine.rating ? Number(wine.rating) : null,
-              reviews: Number(wine.reviews),
-              description: wine.description ? String(wine.description) : null,
-              images: parseImages(wine.images),
-              inStock: Boolean(wine.inStock),
-              featured: Boolean(wine.featured),
-              alcohol: wine.alcohol ? Number(wine.alcohol) : null,
-              volume: wine.volume ? Number(wine.volume) : null,
-              winery: wine.winery ? String(wine.winery) : null,
-              servingTemp: wine.servingTemp ? String(wine.servingTemp) : null,
-              grapes: wine.grapes ? wine.grapes.split(",") : [],
-              pairings: wine.pairings ? wine.pairings.split(",") : [],
-            },
-            quantity: Number(item.quantity),
-            unitPrice: Number(item.unitPrice),
-          };
-        })
-        .filter((item): item is CartItem => item !== null);
+      productDetails.wine = wineRows as any[];
     }
+
+    if (productIds.gift.length) {
+      const [giftRows] = await connection.execute(
+        `SELECT * FROM Gifts WHERE id IN (${productIds.gift
+          .map(() => "?")
+          .join(", ")})`,
+        productIds.gift
+      );
+      productDetails.gift = giftRows as any[];
+    }
+
+    if (productIds.accessory.length) {
+      const [accRows] = await connection.execute(
+        `SELECT * FROM Accessories WHERE id IN (${productIds.accessory
+          .map(() => "?")
+          .join(", ")})`,
+        productIds.accessory
+      );
+      productDetails.accessory = accRows as any[];
+    }
+
+    // Map dữ liệu
+    const items: CartItem[] = itemsData
+      .map((item) => {
+        const details = productDetails[item.product_type].find(
+          (p) => String(p.id) === String(item.product_id)
+        );
+        if (!details) return null;
+
+        return {
+          productType: item.product_type,
+          [item.product_type]: {
+            ...details,
+            images: parseImages(details.images),
+          },
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+        };
+      })
+      .filter((i): i is CartItem => i !== null);
 
     const order: Order = {
       id: String(row.id),
@@ -160,12 +189,7 @@ export async function GET(
       userId: String(row.userId),
       items,
       total: Number(row.total),
-      status: row.status as
-        | "pending"
-        | "processing"
-        | "shipped"
-        | "delivered"
-        | "cancelled",
+      status: row.status as Order["status"],
       createdAt: row.createdAt.toISOString(),
       shippingAddress: {
         name: String(row.name),
@@ -173,7 +197,7 @@ export async function GET(
         phone: String(row.phone),
         address: String(row.address),
       },
-      paymentMethod: row.paymentMethod as "cod" | "bank" | "card",
+      paymentMethod: row.paymentMethod as Order["paymentMethod"],
       notes: row.notes ? String(row.notes) : null,
     };
 
@@ -182,78 +206,6 @@ export async function GET(
     console.error("Lỗi khi lấy chi tiết đơn hàng:", error);
     return NextResponse.json(
       { error: "Lỗi hệ thống. Không thể lấy chi tiết đơn hàng." },
-      { status: 500 }
-    );
-  } finally {
-    if (connection) await connection.end();
-  }
-}
-
-// Cập nhật trạng thái đơn hàng
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const token = getTokenFromRequest(request);
-  const decoded = token && verifyAdminToken(token);
-
-  if (!decoded) {
-    return NextResponse.json(
-      { error: "Bạn không có quyền truy cập" },
-      { status: 403 }
-    );
-  }
-
-  let connection;
-  try {
-    const body = await request.json();
-    const { status } = body;
-
-    // Xác thực trạng thái
-    const validStatuses = [
-      "pending",
-      "processing",
-      "shipped",
-      "delivered",
-      "cancelled",
-    ];
-    if (!status || !validStatuses.includes(status)) {
-      return NextResponse.json(
-        {
-          error:
-            "Trạng thái không hợp lệ. Phải là: pending, processing, shipped, delivered, hoặc cancelled",
-        },
-        { status: 400 }
-      );
-    }
-
-    connection = await getConnection();
-
-    // Kiểm tra đơn hàng tồn tại
-    const [existingRows] = await connection.execute(
-      "SELECT order_id FROM Orders WHERE order_id = ?",
-      [params.id]
-    );
-    if ((existingRows as any[]).length === 0) {
-      return NextResponse.json(
-        { error: "Không tìm thấy đơn hàng" },
-        { status: 404 }
-      );
-    }
-
-    // Cập nhật trạng thái
-    await connection.execute(
-      "UPDATE Orders SET status = ? WHERE order_id = ?",
-      [status, params.id]
-    );
-
-    return NextResponse.json({
-      message: "Cập nhật trạng thái đơn hàng thành công",
-    });
-  } catch (error) {
-    console.error("Lỗi khi cập nhật trạng thái đơn hàng:", error);
-    return NextResponse.json(
-      { error: "Lỗi hệ thống. Không thể cập nhật trạng thái đơn hàng." },
       { status: 500 }
     );
   } finally {
